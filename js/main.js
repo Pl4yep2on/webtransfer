@@ -1022,9 +1022,7 @@ var render = function render() {
       attrs: {
         d: "M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"
       }
-    })])] : [_c("div", {
-      staticClass: "w-10 h-10 bg-gray-200 flex items-center justify-center rounded-lg"
-    })]], 2), _vm._v(" "), _c("div", {
+    })])] : [_vm._m(1, true)]], 2), _vm._v(" "), _c("div", {
       staticClass: "ml-4"
     }, [_vm._v(_vm._s(file.basename))])]), _vm._v(" "), _c("div", {
       staticClass: "cursor-pointer w-1/6 px-4 py-2 border-r border-gray-300"
@@ -1045,6 +1043,19 @@ var staticRenderFns = [function () {
   }, [_vm._v("Type")]), _vm._v(" "), _c("div", {
     staticClass: "w-1/6 px-4 py-2 text-gray-500 font-semibold"
   }, [_vm._v("Taille")])]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("div", {
+    staticClass: "flex items-center justify-center"
+  }, [_c("img", {
+    staticClass: "files-list__row-icon-preview files-list__row-icon-preview--loaded w-10 h-10",
+    attrs: {
+      alt: "",
+      loading: "lazy",
+      src: "http://nextcloud.local/index.php/core/preview?fileId=161&x=32&y=32&mimeFallback=true&v=030b13&a=0"
+    }
+  })]);
 }];
 render._withStripped = true;
 

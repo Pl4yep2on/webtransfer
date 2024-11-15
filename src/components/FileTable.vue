@@ -31,7 +31,9 @@
             </svg>
           </template>
           <template v-else>
-            <div class="w-10 h-10 bg-gray-200 flex items-center justify-center rounded-lg"></div>
+            <div class="flex items-center justify-center">
+              <img alt="" loading="lazy" src="http://nextcloud.local/index.php/core/preview?fileId=161&amp;x=32&amp;y=32&amp;mimeFallback=true&amp;v=030b13&amp;a=0" class="files-list__row-icon-preview files-list__row-icon-preview--loaded w-10 h-10 ">
+            </div>
           </template>
         </div>
         <div class="ml-4">{{ file.basename }}</div>
