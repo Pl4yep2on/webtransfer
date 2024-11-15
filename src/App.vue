@@ -1,26 +1,21 @@
 <template>
-	<NcAppContent>
-		<div id="webtransfer">
-			<h1>Hello world!</h1>
-		</div>
-	</NcAppContent>
+	<div id="app">
+		<h1>Hello world</h1>
+		<FileTable />
+	</div>
 </template>
 
 <script>
-import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
+import FileTable from './views/FileTable.vue'
 
 export default {
 	name: 'App',
 	components: {
-		NcAppContent,
+		FileTable,
 	},
 }
 </script>
 
-<style scoped lang="scss">
-#webtransfer {
-	display: flex;
-	justify-content: center;
-	margin: 16px;
-}
+<style>
+
 </style>
