@@ -11,7 +11,7 @@
       <div 
         v-for="file in files" 
         :key="file.filename" 
-        class="flex h-16 items-center hover:bg-blue-500/20 cursor-pointer border-b last:border-b-0"
+        class="flex h-16 items-center hover:bg-NcGray cursor-pointer rounded-lg border-b last:border-b-0"
         @click="handleClick(file)"
       >
         <div class="flex-1 px-4 py-2 border-r border-gray-300">

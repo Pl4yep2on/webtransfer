@@ -5,7 +5,13 @@ module.exports = {
     "./templates/**/*.{html,php}", // Fichiers dans le dossier `templates`
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        NcBlack: '#171717',
+        NcBlue: '#0072c3',
+        NcGray: '#212121',
+      },
+    },
   },
   plugins: [],
 }
