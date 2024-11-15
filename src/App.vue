@@ -1,26 +1,22 @@
 <template>
-	<NcAppContent>
-		<div id="webserver">
-			<h1>Hello world!</h1>
-		</div>
-	</NcAppContent>
+	<div id="app">
+		<h1>FEUR</h1>
+		<FileTable/>
+	</div>
 </template>
 
 <script>
-import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
+import FileTable from './components/FileTable.vue';
+import './output.css';
 
 export default {
 	name: 'App',
 	components: {
-		NcAppContent,
-	},
+		FileTable,
+	}
 }
 </script>
 
-<style scoped lang="scss">
-#webserver {
-	display: flex;
-	justify-content: center;
-	margin: 16px;
-}
+<style>
+
 </style>
