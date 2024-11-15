@@ -1000,18 +1000,36 @@ var render = function render() {
   }, [_vm._m(0), _vm._v(" "), _vm._l(_vm.files, function (file) {
     return _c("div", {
       key: file.filename,
-      staticClass: "flex h-16 items-center hover:bg-NcGray cursor-pointer rounded-lg border-b last:border-b-0",
+      staticClass: "flex h-16 items-center hover:bg-NcGray cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300",
       on: {
         click: function ($event) {
           return _vm.handleClick(file);
         }
       }
     }, [_c("div", {
-      staticClass: "flex-1 px-4 py-2 border-r border-gray-300"
-    }, [_vm._v("\n      " + _vm._s(file.basename) + "\n    ")]), _vm._v(" "), _c("div", {
-      staticClass: "flex-1 px-4 py-2 border-r border-gray-300"
+      staticClass: "cursor-pointer w-4/6 flex items-center px-4 py-2 border-r border-gray-300"
+    }, [_c("div", {
+      staticClass: "w-12 h-12 flex items-center justify-center"
+    }, [file.type === "directory" ? [_c("svg", {
+      staticClass: "text-NcBlue",
+      attrs: {
+        fill: "currentColor",
+        width: "40",
+        height: "40",
+        viewBox: "0 0 24 24"
+      }
+    }, [_c("path", {
+      attrs: {
+        d: "M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"
+      }
+    })])] : [_c("div", {
+      staticClass: "w-10 h-10 bg-gray-200 flex items-center justify-center rounded-lg"
+    })]], 2), _vm._v(" "), _c("div", {
+      staticClass: "ml-4"
+    }, [_vm._v(_vm._s(file.basename))])]), _vm._v(" "), _c("div", {
+      staticClass: "cursor-pointer w-1/6 px-4 py-2 border-r border-gray-300"
     }, [_vm._v("\n      " + _vm._s(file.type === "directory" ? "Dossier" : "Fichier") + "\n    ")]), _vm._v(" "), _c("div", {
-      staticClass: "flex-1 px-4 py-2"
+      staticClass: "cursor-pointer w-1/6 px-4 py-2"
     }, [_vm._v("\n      " + _vm._s(file.type === "directory" ? "-" : _vm.formatFileSize(file.size)) + "\n    ")])]);
   })], 2);
 };
@@ -1019,13 +1037,13 @@ var staticRenderFns = [function () {
   var _vm = this,
     _c = _vm._self._c;
   return _c("div", {
-    staticClass: "flex h-12 items-center border-b"
+    staticClass: "flex h-12 items-center border-b border-gray-300"
   }, [_c("div", {
-    staticClass: "flex-1 px-4 py-2 font-semibold border-r border-gray-300"
+    staticClass: "w-4/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300"
   }, [_vm._v("Nom")]), _vm._v(" "), _c("div", {
-    staticClass: "flex-1 px-4 py-2 font-semibold border-r border-gray-300"
+    staticClass: "w-1/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300"
   }, [_vm._v("Type")]), _vm._v(" "), _c("div", {
-    staticClass: "flex-1 px-4 py-2 font-semibold"
+    staticClass: "w-1/6 px-4 py-2 text-gray-500 font-semibold"
   }, [_vm._v("Taille")])]);
 }];
 render._withStripped = true;
@@ -1941,6 +1959,10 @@ video {
   margin-right: 0.5rem;
 }
 
+.ml-4 {
+  margin-left: 1rem;
+}
+
 .flex {
   display: flex;
 }
@@ -1957,6 +1979,14 @@ video {
   height: 100%;
 }
 
+.h-8 {
+  height: 2rem;
+}
+
+.h-10 {
+  height: 2.5rem;
+}
+
 .w-1\\/3 {
   width: 33.333333%;
 }
@@ -1967,6 +1997,30 @@ video {
 
 .w-full {
   width: 100%;
+}
+
+.w-1\\/6 {
+  width: 16.666667%;
+}
+
+.w-5\\/6 {
+  width: 83.333333%;
+}
+
+.w-8 {
+  width: 2rem;
+}
+
+.w-10 {
+  width: 2.5rem;
+}
+
+.w-4\\/6 {
+  width: 66.666667%;
+}
+
+.w-12 {
+  width: 3rem;
 }
 
 .flex-1 {
@@ -1989,6 +2043,10 @@ video {
   align-items: center;
 }
 
+.justify-center {
+  justify-content: center;
+}
+
 .rounded-xl {
   border-radius: 0.75rem;
 }
@@ -2009,9 +2067,18 @@ video {
   border-right-width: 1px;
 }
 
+.border-b-2 {
+  border-bottom-width: 2px;
+}
+
 .border-gray-300 {
   --tw-border-opacity: 1;
   border-color: rgb(209 213 219 / var(--tw-border-opacity, 1));
+}
+
+.border-NcGray {
+  --tw-border-opacity: 1;
+  border-color: rgb(33 33 33 / var(--tw-border-opacity, 1));
 }
 
 .bg-NcBlack {
@@ -2023,8 +2090,17 @@ video {
   background-color: rgb(0 0 0 / 0.8);
 }
 
+.bg-gray-200 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(229 231 235 / var(--tw-bg-opacity, 1));
+}
+
 .p-4 {
   padding: 1rem;
+}
+
+.p-2 {
+  padding: 0.5rem;
 }
 
 .px-4 {
@@ -2041,6 +2117,24 @@ video {
   font-weight: 600;
 }
 
+.text-white\\/20 {
+  color: rgb(255 255 255 / 0.2);
+}
+
+.text-white\\/50 {
+  color: rgb(255 255 255 / 0.5);
+}
+
+.text-NcBlue {
+  --tw-text-opacity: 1;
+  color: rgb(0 114 195 / var(--tw-text-opacity, 1));
+}
+
+.text-gray-500 {
+  --tw-text-opacity: 1;
+  color: rgb(107 114 128 / var(--tw-text-opacity, 1));
+}
+
 .last\\:border-b-0:last-child {
   border-bottom-width: 0px;
 }
@@ -2052,6 +2146,11 @@ video {
 .hover\\:bg-NcGray:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(33 33 33 / var(--tw-bg-opacity, 1));
+}
+
+.hover\\:bg-gray-200:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(229 231 235 / var(--tw-bg-opacity, 1));
 }`, ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
