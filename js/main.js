@@ -914,13 +914,9 @@ __webpack_require__.r(__webpack_exports__);
   methods: {
     async fetchFiles() {
       try {
-        // Création du client WebDAV
         const client = (0,_nextcloud_files_dav__WEBPACK_IMPORTED_MODULE_0__.getClient)();
+        const directoryItems = await client.getDirectoryContents('/files/admin' + this.current_dir); // Remplacez "admin" par le nom de l'utilisateur courant
 
-        // Récupération des fichiers et dossiers à la racine
-        const directoryItems = await client.getDirectoryContents('/files/admin' + this.current_dir); //changer admin par le nom de l'utilisateur courant
-
-        // Mise à jour de la liste des fichiers et dossiers
         this.files = directoryItems.map(file => ({
           basename: file.basename,
           size: file.size,
@@ -931,7 +927,6 @@ __webpack_require__.r(__webpack_exports__);
         console.error('Erreur lors de la récupération des fichiers et dossiers :', error);
       }
     },
-    // Fonction pour formater la taille des fichiers
     formatFileSize(size) {
       if (size < 1024) return `${size} B`;
       if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`;
@@ -940,11 +935,9 @@ __webpack_require__.r(__webpack_exports__);
     },
     async handleClick(file) {
       if (file.type === 'directory') {
-        // Si c'est un dossier, on change le répertoire courant et on fetch son contenu
         this.current_dir = this.current_dir === '/' ? '/' + file.basename : this.current_dir + '/' + file.basename;
         await this.fetchFiles();
       } else {
-        // Si c'est un fichier, on ouvre le lien de téléchargement
         window.open(file.href, '_blank');
       }
     }
@@ -969,10 +962,17 @@ var render = function render() {
   var _vm = this,
     _c = _vm._self._c;
   return _c("div", {
+    staticClass: "h-full w-full bg-slate-500",
     attrs: {
       id: "app"
     }
-  }, [_c("h1", [_vm._v("FEUR")]), _vm._v(" "), _c("FileTable")], 1);
+  }, [_c("div", {
+    staticClass: "h-full w-full flex flex-row"
+  }, [_c("div", {
+    staticClass: "w-1/3 p-4 m-6 mr-2 bg-black/10 rounded-xl"
+  }), _vm._v(" "), _c("div", {
+    staticClass: "w-2/3 p-4 m-6 ml-2 bg-black/10 rounded-xl"
+  }, [_c("FileTable")], 1)])]);
 };
 var staticRenderFns = [];
 render._withStripped = true;
@@ -995,22 +995,38 @@ __webpack_require__.r(__webpack_exports__);
 var render = function render() {
   var _vm = this,
     _c = _vm._self._c;
-  return _c("table", [_vm._m(0), _vm._v(" "), _c("tbody", _vm._l(_vm.files, function (file) {
-    return _c("tr", {
-      key: file.filename
-    }, [_c("td", [_c("div", {
+  return _c("div", {
+    staticClass: "flex flex-col h-full w-full border"
+  }, [_vm._m(0), _vm._v(" "), _vm._l(_vm.files, function (file) {
+    return _c("div", {
+      key: file.filename,
+      staticClass: "flex h-16 items-center hover:bg-blue-500/20 cursor-pointer border-b last:border-b-0",
       on: {
         click: function ($event) {
           return _vm.handleClick(file);
         }
       }
-    }, [_vm._v(_vm._s(file.basename))])]), _vm._v(" "), _c("td", [_vm._v(_vm._s(file.type === "directory" ? "Dossier" : "Fichier"))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(file.type === "directory" ? "-" : _vm.formatFileSize(file.size)))])]);
-  }), 0)]);
+    }, [_c("div", {
+      staticClass: "flex-1 px-4 py-2 border-r border-gray-300"
+    }, [_vm._v("\n      " + _vm._s(file.basename) + "\n    ")]), _vm._v(" "), _c("div", {
+      staticClass: "flex-1 px-4 py-2 border-r border-gray-300"
+    }, [_vm._v("\n      " + _vm._s(file.type === "directory" ? "Dossier" : "Fichier") + "\n    ")]), _vm._v(" "), _c("div", {
+      staticClass: "flex-1 px-4 py-2"
+    }, [_vm._v("\n      " + _vm._s(file.type === "directory" ? "-" : _vm.formatFileSize(file.size)) + "\n    ")])]);
+  })], 2);
 };
 var staticRenderFns = [function () {
   var _vm = this,
     _c = _vm._self._c;
-  return _c("thead", [_c("tr", [_c("th", [_vm._v("Nom")]), _vm._v(" "), _c("th", [_vm._v("Type")]), _vm._v(" "), _c("th", [_vm._v("Taille")])])]);
+  return _c("div", {
+    staticClass: "flex h-12 items-center border-b"
+  }, [_c("div", {
+    staticClass: "flex-1 px-4 py-2 font-semibold border-r border-gray-300"
+  }, [_vm._v("Nom")]), _vm._v(" "), _c("div", {
+    staticClass: "flex-1 px-4 py-2 font-semibold border-r border-gray-300"
+  }, [_vm._v("Type")]), _vm._v(" "), _c("div", {
+    staticClass: "flex-1 px-4 py-2 font-semibold"
+  }, [_vm._v("Taille")])]);
 }];
 render._withStripped = true;
 
@@ -1338,32 +1354,7 @@ __webpack_require__.r(__webpack_exports__);
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
 ___CSS_LOADER_EXPORT___.push([module.id, `
-/* Styles pour le tableau */
-table[data-v-36ad32b2] {
-    border-collapse: collapse;
-    width: 80%;
-    margin: 20px auto;
-}
-table[data-v-36ad32b2], th[data-v-36ad32b2], td[data-v-36ad32b2] {
-    border: 1px solid #ddd;
-    padding: 8px;
-}
-th[data-v-36ad32b2] {
-    background-color: #4CAF50;
-    color: white;
-}
-tr[data-v-36ad32b2] {
-    background-color: #f2f2f2;
-}
-td a[data-v-36ad32b2] {
-    color: #4CAF50;
-    text-decoration: none;
-}
-
-/* Ajout du style pour le hover */
-td div[data-v-36ad32b2] {
-    cursor: pointer; /* Change le curseur en main lors du survol */
-}
+/* Vous pouvez ajouter des styles personnalisés ici si nécessaire */
 `, ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
@@ -1936,6 +1927,194 @@ video {
 
 [hidden]:where(:not([hidden="until-found"])) {
   display: none;
+}
+
+.collapse {
+  visibility: collapse;
+}
+
+.m-6 {
+  margin: 1.5rem;
+}
+
+.mb-12 {
+  margin-bottom: 3rem;
+}
+
+.ml-2 {
+  margin-left: 0.5rem;
+}
+
+.mr-2 {
+  margin-right: 0.5rem;
+}
+
+.flex {
+  display: flex;
+}
+
+.table {
+  display: table;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.h-12 {
+  height: 3rem;
+}
+
+.h-16 {
+  height: 4rem;
+}
+
+.max-h-12 {
+  max-height: 3rem;
+}
+
+.max-h-10 {
+  max-height: 2.5rem;
+}
+
+.w-1\\/3 {
+  width: 33.333333%;
+}
+
+.w-2\\/3 {
+  width: 66.666667%;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.flex-1 {
+  flex: 1 1 0%;
+}
+
+.table-auto {
+  table-layout: auto;
+}
+
+.border-collapse {
+  border-collapse: collapse;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(1.5rem * var(--tw-space-y-reverse));
+}
+
+.space-y-2 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0.5rem * var(--tw-space-y-reverse));
+}
+
+.rounded-xl {
+  border-radius: 0.75rem;
+}
+
+.border {
+  border-width: 1px;
+}
+
+.border-b {
+  border-bottom-width: 1px;
+}
+
+.border-r {
+  border-right-width: 1px;
+}
+
+.border-gray-300 {
+  --tw-border-opacity: 1;
+  border-color: rgb(209 213 219 / var(--tw-border-opacity, 1));
+}
+
+.bg-red-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(239 68 68 / var(--tw-bg-opacity, 1));
+}
+
+.bg-gray-600 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(75 85 99 / var(--tw-bg-opacity, 1));
+}
+
+.bg-slate-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(100 116 139 / var(--tw-bg-opacity, 1));
+}
+
+.bg-black\\/30 {
+  background-color: rgb(0 0 0 / 0.3);
+}
+
+.bg-black\\/10 {
+  background-color: rgb(0 0 0 / 0.1);
+}
+
+.bg-black\\/20 {
+  background-color: rgb(0 0 0 / 0.2);
+}
+
+.bg-gray-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(243 244 246 / var(--tw-bg-opacity, 1));
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.last\\:border-b-0:last-child {
+  border-bottom-width: 0px;
+}
+
+.hover\\:bg-gray-100:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(243 244 246 / var(--tw-bg-opacity, 1));
+}
+
+.hover\\:bg-blue-500\\/10:hover {
+  background-color: rgb(59 130 246 / 0.1);
+}
+
+.hover\\:bg-blue-500\\/20:hover {
+  background-color: rgb(59 130 246 / 0.2);
 }`, ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
