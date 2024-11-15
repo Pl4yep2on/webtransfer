@@ -12,7 +12,7 @@
             <tr v-for="file in files" :key="file.filename">
                 <td>
                     <!-- Affiche un lien cliquable vers le fichier ou le dossier -->
-                    <a :href="file.href" target="_blank">{{ file.basename }}</a>
+                    <div @click='handleClick(file)'>{{ file.basename }}</div>
                 </td>
                 <td>{{ file.type === 'directory' ? 'Dossier' : 'Fichier' }}</td>
                 <td>{{ file.type === 'directory' ? '-' : formatFileSize(file.size) }}</td>
@@ -28,7 +28,8 @@ export default {
     name: 'FileTable',
     data() {
         return {
-            files: []  // Liste des fichiers et dossiers récupérés
+            files: [],  // Liste des fichiers et dossiers récupérés
+            current_dir : '/'
         };
     },
     async mounted() {
@@ -41,7 +42,7 @@ export default {
                 const client = getClient();
 
                 // Récupération des fichiers et dossiers à la racine
-                const directoryItems = await client.getDirectoryContents('/files/admin'); //changer admin par le nom de l'utilisateur courant
+                const directoryItems = await client.getDirectoryContents('/files/admin' + this.current_dir); //changer admin par le nom de l'utilisateur courant
 
                 // Mise à jour de la liste des fichiers et dossiers
                 this.files = directoryItems.map(file => ({
@@ -60,7 +61,17 @@ export default {
             if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`;
             if (size < 1024 * 1024 * 1024) return `${(size / 1024 / 1024).toFixed(2)} MB`;
             return `${(size / 1024 / 1024 / 1024).toFixed(2)} GB`;
+        },
+        async handleClick(file) {
+        if (file.type === 'directory') {
+            // Si c'est un dossier, on change le répertoire courant et on fetch son contenu
+            this.current_dir = this.current_dir === '/' ? '/' + file.basename : this.current_dir + '/' + file.basename;
+            await this.fetchFiles();
+        } else {
+            // Si c'est un fichier, on ouvre le lien de téléchargement
+            window.open(file.href, '_blank');
         }
+    }
     }
 }
 </script>
@@ -91,4 +102,10 @@ export default {
         color: #4CAF50;
         text-decoration: none;
     }
+
+    /* Ajout du style pour le hover */
+    td div {
+        cursor: pointer; /* Change le curseur en main lors du survol */
+    }
 </style>
+

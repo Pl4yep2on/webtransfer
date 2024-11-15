@@ -903,7 +903,9 @@ __webpack_require__.r(__webpack_exports__);
   name: 'FileTable',
   data() {
     return {
-      files: [] // Liste des fichiers et dossiers récupérés
+      files: [],
+      // Liste des fichiers et dossiers récupérés
+      current_dir: '/'
     };
   },
   async mounted() {
@@ -916,7 +918,7 @@ __webpack_require__.r(__webpack_exports__);
         const client = (0,_nextcloud_files_dav__WEBPACK_IMPORTED_MODULE_0__.getClient)();
 
         // Récupération des fichiers et dossiers à la racine
-        const directoryItems = await client.getDirectoryContents('/files/admin'); //changer admin par le nom de l'utilisateur courant
+        const directoryItems = await client.getDirectoryContents('/files/admin' + this.current_dir); //changer admin par le nom de l'utilisateur courant
 
         // Mise à jour de la liste des fichiers et dossiers
         this.files = directoryItems.map(file => ({
@@ -935,6 +937,16 @@ __webpack_require__.r(__webpack_exports__);
       if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`;
       if (size < 1024 * 1024 * 1024) return `${(size / 1024 / 1024).toFixed(2)} MB`;
       return `${(size / 1024 / 1024 / 1024).toFixed(2)} GB`;
+    },
+    async handleClick(file) {
+      if (file.type === 'directory') {
+        // Si c'est un dossier, on change le répertoire courant et on fetch son contenu
+        this.current_dir = this.current_dir === '/' ? '/' + file.basename : this.current_dir + '/' + file.basename;
+        await this.fetchFiles();
+      } else {
+        // Si c'est un fichier, on ouvre le lien de téléchargement
+        window.open(file.href, '_blank');
+      }
     }
   }
 });
@@ -986,10 +998,11 @@ var render = function render() {
   return _c("table", [_vm._m(0), _vm._v(" "), _c("tbody", _vm._l(_vm.files, function (file) {
     return _c("tr", {
       key: file.filename
-    }, [_c("td", [_c("a", {
-      attrs: {
-        href: file.href,
-        target: "_blank"
+    }, [_c("td", [_c("div", {
+      on: {
+        click: function ($event) {
+          return _vm.handleClick(file);
+        }
       }
     }, [_vm._v(_vm._s(file.basename))])]), _vm._v(" "), _c("td", [_vm._v(_vm._s(file.type === "directory" ? "Dossier" : "Fichier"))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(file.type === "directory" ? "-" : _vm.formatFileSize(file.size)))])]);
   }), 0)]);
@@ -1345,6 +1358,11 @@ tr[data-v-36ad32b2] {
 td a[data-v-36ad32b2] {
     color: #4CAF50;
     text-decoration: none;
+}
+
+/* Ajout du style pour le hover */
+td div[data-v-36ad32b2] {
+    cursor: pointer; /* Change le curseur en main lors du survol */
 }
 `, ""]);
 // Exports
