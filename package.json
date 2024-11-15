@@ -18,9 +18,9 @@
   ],
   "dependencies": {
     "@nextcloud/dialogs": "^3.1.2",
-    "@nextcloud/files": "^2.1.0",
+    "@nextcloud/files": "^3.10.0",
     "@nextcloud/initial-state": "^2.2.0",
-    "@nextcloud/vue": "^8.11.2",
+    "@nextcloud/vue": "^8.20.0",
     "vue": "^2.7.16"
   },
   "devDependencies": {
@@ -29,6 +29,7 @@
     "@nextcloud/stylelint-config": "^2.4.0",
     "@nextcloud/webpack-vue-config": "^6.0.1",
     "eslint-webpack-plugin": "^4.1.0",
-    "stylelint-webpack-plugin": "^5.0.0"
+    "stylelint-webpack-plugin": "^5.0.0",
+    "tailwindcss": "^3.4.15"
   }
 }
