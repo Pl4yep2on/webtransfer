@@ -1,13 +1,55 @@
 <template>
+
     <div class="flex flex-col h-full w-full border">
         <!-- Breadcrumb -->
-        <NcBreadcrumbs class="max-h-8 ml-3 mt-1">
-            <NcBreadcrumb name="Home" title="Title of the Home folder" @click="handleClickBreadcrumb(-1)">
-            </NcBreadcrumb>
-            <NcBreadcrumb v-if="getBreadcrumbParts().length > 0" v-for="(part, index) in breadcrumbParts" :key="index"
-                :name="part" @click="handleClickBreadcrumb(index)">
-            </NcBreadcrumb>
-        </NcBreadcrumbs>
+        <div class="flex flex-row mt-1 ml-3 items-start container">
+            <NcBreadcrumbs class="max-h-8">
+                <NcBreadcrumb name="Home" title="Title of the Home folder" @click="handleClickBreadcrumb(-1)">
+                </NcBreadcrumb>
+                <NcBreadcrumb v-if="getBreadcrumbParts().length > 0" v-for="(part, index) in breadcrumbParts" :key="index"
+                    :name="part" @click="handleClickBreadcrumb(index)">
+                </NcBreadcrumb>
+                <template #actions>
+                    <div class="flex items-center ml-2">
+                        <button 
+                            @click="toggleAddFilePopup" 
+                            class="flex items-center space-x-2 bg-blue-100 text-blue-600 font-medium px-4 py-2 rounded-md hover:bg-blue-200 transition"
+                        >
+                            <Plus :size="20" />
+                            <span>Add</span>
+                        </button>
+                    </div>
+                </template>
+            </NcBreadcrumbs>
+        </div>
+
+
+        <!-- Popup pour la création de fichier -->
+        <div v-if="isAddFilePopupVisible" class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50">
+            <div class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
+                <h2 class="text-lg font-semibold mb-4">Créer un nouveau fichier</h2>
+                <input 
+                    v-model="newFileName" 
+                    type="text" 
+                    placeholder="Nom du fichier" 
+                    class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <div class="flex justify-end mt-4 space-x-2">
+                    <button 
+                        @click="toggleAddFilePopup" 
+                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+                    >
+                        Annuler
+                    </button>
+                    <button 
+                        @click="createNewFile" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                    >
+                        Créer
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- En-tête -->
         <div class="flex h-12 items-center border-b border-gray-300">
@@ -66,18 +108,22 @@
 import { getClient } from '@nextcloud/files/dav';
 import NcBreadcrumbs from '@nextcloud/vue/dist/Components/NcBreadcrumbs.js';
 import NcBreadcrumb from '@nextcloud/vue/dist/Components/NcBreadcrumb.js';
+import Plus from 'vue-material-design-icons/Plus.vue'
 
 export default {
     name: 'FileTable',
     components: {
         NcBreadcrumbs,
-        NcBreadcrumb
+        NcBreadcrumb,
+        Plus
     },
     data() {
         return {
             files: [], // Liste des fichiers et dossiers récupérés
             current_dir: '/',
-            breadcrumbParts: []
+            breadcrumbParts: [],
+            isAddFilePopupVisible: false,
+            newFileName: ''
         };
     },
     async mounted() {
@@ -132,6 +178,23 @@ export default {
             this.current_dir = dir;
             this.breadcrumbParts = this.getBreadcrumbParts();
             await this.fetchFiles();
+        },
+        async createNewFile() {
+            if (!this.newFileName) return;
+            try {
+                const client = getClient();
+                const filePath = `/files/admin${this.current_dir}/${this.newFileName}`;
+                await client.createFile(filePath, '');
+                this.newFileName = '';
+                this.isAddFilePopupVisible = false;
+                await this.fetchFiles();
+            } catch (error) {
+                console.error('Erreur lors de la création du fichier :', error);
+            }
+        },
+        toggleAddFilePopup() {
+            this.isAddFilePopupVisible = !this.isAddFilePopupVisible;
+            if (!this.isAddFilePopupVisible) this.newFileName = '';
         }
     }
 };
