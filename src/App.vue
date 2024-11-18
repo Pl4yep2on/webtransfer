@@ -1,13 +1,17 @@
 <template>
 	<div id="app" class="h-full w-full bg-black/80">
-		<div class="h-full w-full flex flex-row">
-			<div class="w-1/3 p-4 m-6 mr-2 rounded-xl">
+		<!-- Conteneur principal, ajustement en flex-row à partir de sm -->
+		<div class="h-full w-full flex flex-col sm:flex-row">
+			<!-- Première section -->
+			<div 
+				class="w-full sm:w-1/3 max-sm:h-2/5 p-4 sm:m-6 rounded-xl bg-NcBlack/40">
 			</div>
-			<div class="w-2/3 p-4 m-6 ml-2 bg-NcBlack rounded-xl">
+			<!-- Deuxième section -->
+			<div 
+				class="w-full sm:w-2/3 max-sm:h-3/5 p-4 sm:m-6 bg-NcBlack rounded-xl">
 				<FileTable/>
 			</div>
 		</div>
-		
 	</div>
 </template>
 

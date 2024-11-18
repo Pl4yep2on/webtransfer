@@ -1018,11 +1018,11 @@ var render = function render() {
       id: "app"
     }
   }, [_c("div", {
-    staticClass: "h-full w-full flex flex-row"
+    staticClass: "h-full w-full flex flex-col sm:flex-row"
   }, [_c("div", {
-    staticClass: "w-1/3 p-4 m-6 mr-2 rounded-xl"
+    staticClass: "w-full sm:w-1/3 max-sm:h-2/5 p-4 sm:m-6 rounded-xl bg-NcBlack/40"
   }), _vm._v(" "), _c("div", {
-    staticClass: "w-2/3 p-4 m-6 ml-2 bg-NcBlack rounded-xl"
+    staticClass: "w-full sm:w-2/3 max-sm:h-3/5 p-4 sm:m-6 bg-NcBlack rounded-xl"
   }, [_c("FileTable")], 1)])]);
 };
 var staticRenderFns = [];
@@ -1066,7 +1066,7 @@ var render = function render() {
           attrs: {
             size: 20
           }
-        }), _vm._v(" "), _c("span", [_vm._v("Add")])], 1)])];
+        }), _vm._v(" "), _c("span", [_vm._v("Nouveau")])], 1)])];
       },
       proxy: true
     }])
@@ -1131,7 +1131,9 @@ var render = function render() {
     on: {
       click: _vm.createNewFile
     }
-  }, [_vm._v("\n                    Créer\n                ")])])])]) : _vm._e(), _vm._v(" "), _vm._m(0), _vm._v(" "), _vm._l(_vm.files, function (file) {
+  }, [_vm._v("\n                    Créer\n                ")])])])]) : _vm._e(), _vm._v(" "), _vm._m(0), _vm._v(" "), _c("div", {
+    staticClass: "overflow-y-auto"
+  }, _vm._l(_vm.files, function (file) {
     return _c("div", {
       key: file.filename,
       staticClass: "flex h-16 items-center hover:bg-NcGray rounded-lg border-b last:border-b-0 border-gray-300",
@@ -1179,13 +1181,13 @@ var render = function render() {
         transform: "matrix(.7 0 0 .7 -.43 -.388)"
       }
     })])])]], 2), _vm._v(" "), _c("div", {
-      staticClass: "ml-4 cursor-pointer"
+      staticClass: "ml-4 cursor-pointer max-sm:max-w-32 truncate"
     }, [_vm._v(_vm._s(file.basename))])]), _vm._v(" "), _c("div", {
       staticClass: "w-1/6 px-4 py-2 border-r border-gray-300 cursor-pointer"
-    }, [_vm._v("\n            " + _vm._s(file.type === "directory" ? "Dossier" : "Fichier") + "\n        ")]), _vm._v(" "), _c("div", {
+    }, [_vm._v("\n                " + _vm._s(file.type === "directory" ? "Dossier" : "Fichier") + "\n            ")]), _vm._v(" "), _c("div", {
       staticClass: "w-1/6 px-4 py-2 cursor-pointer"
-    }, [_vm._v("\n            " + _vm._s(file.type === "directory" ? "-" : _vm.formatFileSize(file.size)) + "\n        ")])]);
-  })], 2);
+    }, [_vm._v("\n                " + _vm._s(file.type === "directory" ? "-" : _vm.formatFileSize(file.size)) + "\n            ")])]);
+  }), 0)]);
 };
 var staticRenderFns = [function () {
   var _vm = this,
@@ -3191,6 +3193,14 @@ video {
   margin-top: 1rem;
 }
 
+.ml-6 {
+  margin-left: 1.5rem;
+}
+
+.mr-6 {
+  margin-right: 1.5rem;
+}
+
 .inline {
   display: inline;
 }
@@ -3213,6 +3223,14 @@ video {
 
 .h-10 {
   height: 2.5rem;
+}
+
+.h-1\\/3 {
+  height: 33.333333%;
+}
+
+.h-2\\/3 {
+  height: 66.666667%;
 }
 
 .max-h-8 {
@@ -3297,6 +3315,16 @@ video {
   margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
+.overflow-y-auto {
+  overflow-y: auto;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .rounded-lg {
   border-radius: 0.5rem;
 }
@@ -3362,6 +3390,14 @@ video {
 .bg-white {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
+}
+
+.bg-NcBlack\\/20 {
+  background-color: rgb(23 23 23 / 0.2);
+}
+
+.bg-NcBlack\\/40 {
+  background-color: rgb(23 23 23 / 0.4);
 }
 
 .bg-opacity-50 {
@@ -3480,6 +3516,76 @@ video {
 .focus\\:ring-blue-500:focus {
   --tw-ring-opacity: 1;
   --tw-ring-color: rgb(59 130 246 / var(--tw-ring-opacity, 1));
+}
+
+@media not all and (min-width: 640px) {
+  .max-sm\\:h-1\\/3 {
+    height: 33.333333%;
+  }
+
+  .max-sm\\:h-2\\/3 {
+    height: 66.666667%;
+  }
+
+  .max-sm\\:h-2\\/5 {
+    height: 40%;
+  }
+
+  .max-sm\\:h-3\\/5 {
+    height: 60%;
+  }
+
+  .max-sm\\:w-1\\/3 {
+    width: 33.333333%;
+  }
+
+  .max-sm\\:w-2\\/3 {
+    width: 66.666667%;
+  }
+
+  .max-sm\\:max-w-32 {
+    max-width: 8rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .sm\\:m-6 {
+    margin: 1.5rem;
+  }
+
+  .sm\\:ml-2 {
+    margin-left: 0.5rem;
+  }
+
+  .sm\\:mr-2 {
+    margin-right: 0.5rem;
+  }
+
+  .sm\\:h-full {
+    height: 100%;
+  }
+
+  .sm\\:w-1\\/3 {
+    width: 33.333333%;
+  }
+
+  .sm\\:w-2\\/3 {
+    width: 66.666667%;
+  }
+
+  .sm\\:flex-row {
+    flex-direction: row;
+  }
+
+  @media not all and (min-width: 640px) {
+    .sm\\:max-sm\\:w-1\\/3 {
+      width: 33.333333%;
+    }
+
+    .sm\\:max-sm\\:w-2\\/3 {
+      width: 66.666667%;
+    }
+  }
 }`, ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);

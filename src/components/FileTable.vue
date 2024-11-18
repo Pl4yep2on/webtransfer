@@ -16,7 +16,7 @@
                             class="flex items-center space-x-2 bg-blue-100 text-blue-600 font-medium px-4 py-2 rounded-md hover:bg-blue-200 transition"
                         >
                             <Plus :size="20" />
-                            <span>Add</span>
+                            <span>Nouveau</span>
                         </button>
                     </div>
                 </template>
@@ -59,43 +59,45 @@
         </div>
 
         <!-- Contenu -->
-        <div v-for="file in files" :key="file.filename"
-            class="flex h-16 items-center hover:bg-NcGray rounded-lg border-b last:border-b-0 border-gray-300"
-            @click="handleClickElem(file)">
+        <div class="overflow-y-auto">
+            <div v-for="file in files" :key="file.filename"
+                class="flex h-16 items-center hover:bg-NcGray rounded-lg border-b last:border-b-0 border-gray-300"
+                @click="handleClickElem(file)">
 
-            <!-- Nom -->
-            <div class="w-4/6 flex items-center px-4 py-2 border-r border-gray-300 cursor-pointer">
-                <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
-                    <template v-if="file.type === 'directory'">
-                        <svg fill="currentColor" viewBox="0 0 24 24" class="text-NcBlue w-10 h-10 ">
-                            <path
-                                d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z">
-                            </path>
-                        </svg>
-                    </template>
-                    <template v-else>
-                        <div class="flex items-center justify-center cursor-pointer">
-                            <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
-                                class="w-10 h-10"
-                                style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2">
+                <!-- Nom -->
+                <div class="w-4/6 flex items-center px-4 py-2 border-r border-gray-300 cursor-pointer">
+                    <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
+                        <template v-if="file.type === 'directory'">
+                            <svg fill="currentColor" viewBox="0 0 24 24" class="text-NcBlue w-10 h-10 ">
                                 <path
-                                    d="M6 22c-.55 0-1.021-.196-1.412-.587A1.927 1.927 0 0 1 4 20V4c0-.55.196-1.021.588-1.413A1.926 1.926 0 0 1 6 2h8l6 6v12a1.93 1.93 0 0 1-.587 1.413A1.93 1.93 0 0 1 18 22H6Z"
-                                    style="fill:#969696;fill-rule:nonzero" transform="matrix(.7 0 0 .7 -.43 -.388)" />
+                                    d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z">
+                                </path>
                             </svg>
-                        </div>
-                    </template>
+                        </template>
+                        <template v-else>
+                            <div class="flex items-center justify-center cursor-pointer">
+                                <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
+                                    class="w-10 h-10"
+                                    style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2">
+                                    <path
+                                        d="M6 22c-.55 0-1.021-.196-1.412-.587A1.927 1.927 0 0 1 4 20V4c0-.55.196-1.021.588-1.413A1.926 1.926 0 0 1 6 2h8l6 6v12a1.93 1.93 0 0 1-.587 1.413A1.93 1.93 0 0 1 18 22H6Z"
+                                        style="fill:#969696;fill-rule:nonzero" transform="matrix(.7 0 0 .7 -.43 -.388)" />
+                                </svg>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="ml-4 cursor-pointer max-sm:max-w-32 truncate">{{ file.basename }}</div>
                 </div>
-                <div class="ml-4 cursor-pointer">{{ file.basename }}</div>
-            </div>
 
-            <!-- Type -->
-            <div class="w-1/6 px-4 py-2 border-r border-gray-300 cursor-pointer">
-                {{ file.type === 'directory' ? 'Dossier' : 'Fichier' }}
-            </div>
+                <!-- Type -->
+                <div class="w-1/6 px-4 py-2 border-r border-gray-300 cursor-pointer">
+                    {{ file.type === 'directory' ? 'Dossier' : 'Fichier' }}
+                </div>
 
-            <!-- Taille -->
-            <div class="w-1/6 px-4 py-2 cursor-pointer">
-                {{ file.type === 'directory' ? '-' : formatFileSize(file.size) }}
+                <!-- Taille -->
+                <div class="w-1/6 px-4 py-2 cursor-pointer">
+                    {{ file.type === 'directory' ? '-' : formatFileSize(file.size) }}
+                </div>
             </div>
         </div>
 
