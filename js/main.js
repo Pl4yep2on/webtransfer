@@ -980,7 +980,7 @@ __webpack_require__.r(__webpack_exports__);
       try {
         const client = (0,_nextcloud_files_dav__WEBPACK_IMPORTED_MODULE_0__.getClient)();
         const filePath = `/files/admin${this.current_dir}/${this.newFileName}`;
-        await client.createFile(filePath, '');
+        await client.createDirectory(filePath, '');
         this.newFileName = '';
         this.isAddFilePopupVisible = false;
         await this.fetchFiles();

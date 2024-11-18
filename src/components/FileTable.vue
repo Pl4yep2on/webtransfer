@@ -184,7 +184,7 @@ export default {
             try {
                 const client = getClient();
                 const filePath = `/files/admin${this.current_dir}/${this.newFileName}`;
-                await client.createFile(filePath, '');
+                await client.createDirectory(filePath, '');
                 this.newFileName = '';
                 this.isAddFilePopupVisible = false;
                 await this.fetchFiles();
