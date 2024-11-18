@@ -107,7 +107,7 @@
 
 
 <script>
-import { getClient } from '@nextcloud/files/dav';
+import { getClient, getRootPath } from '@nextcloud/files/dav';
 import NcBreadcrumbs from '@nextcloud/vue/dist/Components/NcBreadcrumbs.js';
 import NcBreadcrumb from '@nextcloud/vue/dist/Components/NcBreadcrumb.js';
 import Plus from 'vue-material-design-icons/Plus.vue'
@@ -122,6 +122,7 @@ export default {
     data() {
         return {
             files: [], // Liste des fichiers et dossiers récupérés
+            root_path: getRootPath(),
             current_dir: '/',
             breadcrumbParts: [],
             isAddFilePopupVisible: false,
@@ -136,7 +137,7 @@ export default {
         async fetchFiles() {
             try {
                 const client = getClient();
-                const directoryItems = await client.getDirectoryContents('/files/admin' + this.current_dir); // Remplacez "admin" par le nom de l'utilisateur courant
+                const directoryItems = await client.getDirectoryContents(this.root_path + this.current_dir); // Remplacez "admin" par le nom de l'utilisateur courant
 
                 this.files = directoryItems.map(file => ({
                     basename: file.basename,
@@ -185,7 +186,7 @@ export default {
             if (!this.newFileName) return;
             try {
                 const client = getClient();
-                const filePath = `/files/admin${this.current_dir}/${this.newFileName}`;
+                const filePath = `${this.root_path}${this.current_dir}/${this.newFileName}`;
                 await client.createDirectory(filePath, '');
                 this.newFileName = '';
                 this.isAddFilePopupVisible = false;

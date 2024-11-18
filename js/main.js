@@ -916,6 +916,7 @@ __webpack_require__.r(__webpack_exports__);
     return {
       files: [],
       // Liste des fichiers et dossiers récupérés
+      root_path: (0,_nextcloud_files_dav__WEBPACK_IMPORTED_MODULE_0__.getRootPath)(),
       current_dir: '/',
       breadcrumbParts: [],
       isAddFilePopupVisible: false,
@@ -930,7 +931,7 @@ __webpack_require__.r(__webpack_exports__);
     async fetchFiles() {
       try {
         const client = (0,_nextcloud_files_dav__WEBPACK_IMPORTED_MODULE_0__.getClient)();
-        const directoryItems = await client.getDirectoryContents('/files/admin' + this.current_dir); // Remplacez "admin" par le nom de l'utilisateur courant
+        const directoryItems = await client.getDirectoryContents(this.root_path + this.current_dir); // Remplacez "admin" par le nom de l'utilisateur courant
 
         this.files = directoryItems.map(file => ({
           basename: file.basename,
@@ -979,7 +980,7 @@ __webpack_require__.r(__webpack_exports__);
       if (!this.newFileName) return;
       try {
         const client = (0,_nextcloud_files_dav__WEBPACK_IMPORTED_MODULE_0__.getClient)();
-        const filePath = `/files/admin${this.current_dir}/${this.newFileName}`;
+        const filePath = `${this.root_path}${this.current_dir}/${this.newFileName}`;
         await client.createDirectory(filePath, '');
         this.newFileName = '';
         this.isAddFilePopupVisible = false;
