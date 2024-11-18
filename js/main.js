@@ -1064,24 +1064,46 @@ var render = function render() {
     }, [_c("div", {
       staticClass: "w-12 h-12 flex items-center justify-center"
     }, [file.type === "directory" ? [_c("svg", {
-      staticClass: "text-NcBlue",
+      staticClass: "text-NcBlue w-10 h-10",
       attrs: {
         fill: "currentColor",
-        width: "40",
-        height: "40",
         viewBox: "0 0 24 24"
       }
     }, [_c("path", {
       attrs: {
         d: "M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"
       }
-    })])] : [_vm._m(1, true)]], 2), _vm._v(" "), _c("div", {
+    })])] : [_c("div", {
+      staticClass: "flex items-center justify-center"
+    }, [_c("svg", {
+      staticClass: "w-10 h-10",
+      staticStyle: {
+        "fill-rule": "evenodd",
+        "clip-rule": "evenodd",
+        "stroke-linejoin": "round",
+        "stroke-miterlimit": "2"
+      },
+      attrs: {
+        viewBox: "0 0 16 16",
+        xmlns: "http://www.w3.org/2000/svg",
+        "xml:space": "preserve"
+      }
+    }, [_c("path", {
+      staticStyle: {
+        fill: "#969696",
+        "fill-rule": "nonzero"
+      },
+      attrs: {
+        d: "M6 22c-.55 0-1.021-.196-1.412-.587A1.927 1.927 0 0 1 4 20V4c0-.55.196-1.021.588-1.413A1.926 1.926 0 0 1 6 2h8l6 6v12a1.93 1.93 0 0 1-.587 1.413A1.93 1.93 0 0 1 18 22H6Z",
+        transform: "matrix(.7 0 0 .7 -.43 -.388)"
+      }
+    })])])]], 2), _vm._v(" "), _c("div", {
       staticClass: "ml-4"
     }, [_vm._v(_vm._s(file.basename))])]), _vm._v(" "), _c("div", {
       staticClass: "cursor-pointer w-1/6 px-4 py-2 border-r border-gray-300"
-    }, [_vm._v("\n    " + _vm._s(file.type === "directory" ? "Dossier" : "Fichier") + "\n    ")]), _vm._v(" "), _c("div", {
+    }, [_vm._v("\r\n    " + _vm._s(file.type === "directory" ? "Dossier" : "Fichier") + "\r\n    ")]), _vm._v(" "), _c("div", {
       staticClass: "cursor-pointer w-1/6 px-4 py-2"
-    }, [_vm._v("\n    " + _vm._s(file.type === "directory" ? "-" : _vm.formatFileSize(file.size)) + "\n    ")])]);
+    }, [_vm._v("\r\n    " + _vm._s(file.type === "directory" ? "-" : _vm.formatFileSize(file.size)) + "\r\n    ")])]);
   })], 2);
 };
 var staticRenderFns = [function () {
@@ -1096,19 +1118,6 @@ var staticRenderFns = [function () {
   }, [_vm._v("Type")]), _vm._v(" "), _c("div", {
     staticClass: "w-1/6 px-4 py-2 text-gray-500 font-semibold"
   }, [_vm._v("Taille")])]);
-}, function () {
-  var _vm = this,
-    _c = _vm._self._c;
-  return _c("div", {
-    staticClass: "flex items-center justify-center"
-  }, [_c("img", {
-    staticClass: "files-list__row-icon-preview files-list__row-icon-preview--loaded w-10 h-10",
-    attrs: {
-      alt: "",
-      loading: "lazy",
-      src: "http://nextcloud.local/index.php/core/preview?fileId=161&x=32&y=32&mimeFallback=true&v=030b13&a=0"
-    }
-  })]);
 }];
 render._withStripped = true;
 
@@ -3039,10 +3048,6 @@ video {
   display: flex;
 }
 
-.h-10 {
-  height: 2.5rem;
-}
-
 .h-12 {
   height: 3rem;
 }
@@ -3055,8 +3060,8 @@ video {
   height: 100%;
 }
 
-.h-8 {
-  height: 2rem;
+.h-10 {
+  height: 2.5rem;
 }
 
 .max-h-8 {
@@ -3069,10 +3074,6 @@ video {
 
 .w-1\\/6 {
   width: 16.666667%;
-}
-
-.w-10 {
-  width: 2.5rem;
 }
 
 .w-12 {
@@ -3089,6 +3090,18 @@ video {
 
 .w-full {
   width: 100%;
+}
+
+.w-10 {
+  width: 2.5rem;
+}
+
+.w-16 {
+  width: 4rem;
+}
+
+.transform {
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
 .cursor-pointer {
