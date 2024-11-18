@@ -1027,7 +1027,7 @@ var render = function render() {
   return _c("div", {
     staticClass: "flex flex-col h-full w-full border"
   }, [_c("NcBreadcrumbs", {
-    staticClass: "max-h-8 mr-4"
+    staticClass: "max-h-8 ml-3 mt-1"
   }, [_c("NcBreadcrumb", {
     attrs: {
       name: "Home",
@@ -1053,16 +1053,16 @@ var render = function render() {
   })], 2), _vm._v(" "), _vm._m(0), _vm._v(" "), _vm._l(_vm.files, function (file) {
     return _c("div", {
       key: file.filename,
-      staticClass: "flex h-16 items-center hover:bg-NcGray cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300",
+      staticClass: "flex h-16 items-center hover:bg-NcGray rounded-lg border-b last:border-b-0 border-gray-300",
       on: {
         click: function ($event) {
           return _vm.handleClickElem(file);
         }
       }
     }, [_c("div", {
-      staticClass: "cursor-pointer w-4/6 flex items-center px-4 py-2 border-r border-gray-300"
+      staticClass: "w-4/6 flex items-center px-4 py-2 border-r border-gray-300 cursor-pointer"
     }, [_c("div", {
-      staticClass: "w-12 h-12 flex items-center justify-center"
+      staticClass: "w-12 h-12 flex items-center justify-center cursor-pointer"
     }, [file.type === "directory" ? [_c("svg", {
       staticClass: "text-NcBlue w-10 h-10",
       attrs: {
@@ -1074,7 +1074,7 @@ var render = function render() {
         d: "M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"
       }
     })])] : [_c("div", {
-      staticClass: "flex items-center justify-center"
+      staticClass: "flex items-center justify-center cursor-pointer"
     }, [_c("svg", {
       staticClass: "w-10 h-10",
       staticStyle: {
@@ -1098,12 +1098,12 @@ var render = function render() {
         transform: "matrix(.7 0 0 .7 -.43 -.388)"
       }
     })])])]], 2), _vm._v(" "), _c("div", {
-      staticClass: "ml-4"
+      staticClass: "ml-4 cursor-pointer"
     }, [_vm._v(_vm._s(file.basename))])]), _vm._v(" "), _c("div", {
-      staticClass: "cursor-pointer w-1/6 px-4 py-2 border-r border-gray-300"
-    }, [_vm._v("\r\n    " + _vm._s(file.type === "directory" ? "Dossier" : "Fichier") + "\r\n    ")]), _vm._v(" "), _c("div", {
-      staticClass: "cursor-pointer w-1/6 px-4 py-2"
-    }, [_vm._v("\r\n    " + _vm._s(file.type === "directory" ? "-" : _vm.formatFileSize(file.size)) + "\r\n    ")])]);
+      staticClass: "w-1/6 px-4 py-2 border-r border-gray-300 cursor-pointer"
+    }, [_vm._v("\n            " + _vm._s(file.type === "directory" ? "Dossier" : "Fichier") + "\n        ")]), _vm._v(" "), _c("div", {
+      staticClass: "w-1/6 px-4 py-2 cursor-pointer"
+    }, [_vm._v("\n            " + _vm._s(file.type === "directory" ? "-" : _vm.formatFileSize(file.size)) + "\n        ")])]);
   })], 2);
 };
 var staticRenderFns = [function () {
@@ -3042,6 +3042,14 @@ video {
 
 .mr-4 {
   margin-right: 1rem;
+}
+
+.ml-3 {
+  margin-left: 0.75rem;
+}
+
+.mt-1 {
+  margin-top: 0.25rem;
 }
 
 .flex {
