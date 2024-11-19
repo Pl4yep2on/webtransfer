@@ -36,8 +36,12 @@ class PageController extends Controller {
 	#[FrontpageRoute(verb: 'POST', url: '/zipDeposit')]
 	public function post($archiveUrl, $token) {
 		$request = $this->request;
+		$parameters = array('archiveUrl' => $archiveUrl, 'token' => $token);
 	
-		// Traitement du fichier si nécessaire
-		return new JsonResponse(['message' => 'File uploaded successfully' . $archiveUrl . " - " . $token], 200);
+		return new TemplateResponse(
+			Application::APP_ID,
+			'index',
+			$parameters
+		);
 	}
 }
