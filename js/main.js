@@ -1397,7 +1397,7 @@ var render = function render() {
       staticClass: "w-12 h-12 flex items-center justify-center cursor-pointer"
     }, [_c(_vm.folderMap[file.fullPath] ? _vm.ChevronDownIcon : _vm.ChevronRightIcon, {
       tag: "component",
-      staticClass: "text-NcBlue w-3 h-6"
+      staticClass: "text-NcBlue w-6 h-6"
     })], 1), _vm._v(" "), _c("span", {
       staticClass: "ml-2 truncate cursor-pointer"
     }, [_vm._v(_vm._s(file.fullPath))])])]), _vm._v(" "), _c("div", {

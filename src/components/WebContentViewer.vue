@@ -27,7 +27,7 @@
                             <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
                                 <component 
                                     :is="folderMap[file.fullPath] ? ChevronDownIcon : ChevronRightIcon" 
-                                    class="text-NcBlue w-3 h-6"
+                                    class="text-NcBlue w-6 h-6"
                                 />
                             </div>
                             <span class="ml-2 truncate cursor-pointer">{{ file.fullPath }}</span>
