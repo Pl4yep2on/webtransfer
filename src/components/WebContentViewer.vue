@@ -79,6 +79,13 @@ export default {
     },
     async mounted() {
         await this.loadZipContent();
+        const webTransferDiv = document.getElementById('archiveInfos');
+        if (webTransferDiv) {
+            this.archiveUrl = webTransferDiv.dataset.archiveUrl;
+            this.token = webTransferDiv.dataset.token;
+        } else {
+            console.error('Pas d\'informations pour recuperer l\'archive');
+        }
     },
     methods: {
         async loadZipContent() {
