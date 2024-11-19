@@ -1090,7 +1090,7 @@ __webpack_require__.r(__webpack_exports__);
         const initializeFolderMap = (files, parentPath = '') => {
           files.forEach(file => {
             const fullPath = parentPath ? `${parentPath}/${file.name}` : file.name;
-            this.$set(this.folderMap, fullPath, true);
+            this.$set(this.folderMap, fullPath, false);
             if (file.isDirectory && file.children) {
               initializeFolderMap(file.children, fullPath);
             }
