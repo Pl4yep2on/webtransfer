@@ -10,7 +10,11 @@ $archiveUrl = isset($_['archiveUrl']) ? $_['archiveUrl'] : ''; // Valeur par dé
 $token = isset($_['token']) ? $_['token'] : ''; // Valeur par défaut vide si non définie
 ?>
 
-<div id="webtransfer" 
+<div id="webtransfer">
+</div>
+
+<div id="archiveInfos"
      data-archive-url="<?php echo htmlspecialchars($archiveUrl); ?>" 
      data-token="<?php echo htmlspecialchars($token); ?>"
-></div>
+>
+</div>
