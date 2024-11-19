@@ -14,7 +14,7 @@ use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 use OCP\IResponse;
-use OCP\AppFramework\Http\JsonResponse;
+use OCP\AppFramework\Http\JSONResponse;
 
 /**
  * @psalm-suppress UnusedClass
@@ -32,23 +32,12 @@ class PageController extends Controller {
 	}
 
 	#[NoCSRFRequired]
-    #[NoAdminRequired]
-    #[OpenAPI(OpenAPI::SCOPE_OPERATION, tags: ['post'])]
-    #[FrontpageRoute(verb: 'POST', url: '/post')]
-	public function post(): JsonResponse {
+	#[NoAdminRequired]
+	#[FrontpageRoute(verb: 'POST', url: '/zipDeposit')]
+	public function post($archiveUrl, $token) {
 		$request = $this->request;
-		$uploadedFile = $request->getUploadedFile('zipfile');
-	
-		if (!$uploadedFile) {
-			return new JsonResponse(['error' => 'No file uploaded'], 400);
-		}
-	
-		if ($uploadedFile->getClientMimeType() !== 'application/zip') {
-			return new JsonResponse(['error' => 'Invalid file type, only ZIP allowed'], 400);
-		}
 	
 		// Traitement du fichier si nécessaire
-		return new JsonResponse(['message' => 'File uploaded successfully'], 200);
+		return new JsonResponse(['message' => 'File uploaded successfully' . $archiveUrl . " - " . $token], 200);
 	}
-
 }
