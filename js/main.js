@@ -884,6 +884,15 @@ __webpack_require__.r(__webpack_exports__);
   components: {
     FileTable: _components_FileTable_vue__WEBPACK_IMPORTED_MODULE_0__["default"],
     WebContentViewer: _components_WebContentViewer_vue__WEBPACK_IMPORTED_MODULE_1__["default"]
+  },
+  mounted() {
+    const webTransferDiv = document.getElementById('archiveInfos');
+    if (webTransferDiv) {
+      this.archiveUrl = webTransferDiv.dataset.archiveUrl;
+      this.token = webTransferDiv.dataset.token;
+    } else {
+      console.error('Pas d\'informations pour recuperer l\'archive');
+    }
   }
 });
 
@@ -929,13 +938,6 @@ __webpack_require__.r(__webpack_exports__);
   async mounted() {
     await this.fetchFiles();
     this.breadcrumbParts = this.getBreadcrumbParts();
-    const webTransferDiv = document.getElementById('archiveInfos');
-    if (webTransferDiv) {
-      this.archiveUrl = webTransferDiv.dataset.archiveUrl;
-      this.token = webTransferDiv.dataset.token;
-    } else {
-      console.error('Pas d\'informations pour recuperer l\'archive');
-    }
   },
   methods: {
     async fetchFiles() {
