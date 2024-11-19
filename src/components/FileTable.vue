@@ -59,7 +59,7 @@
         </div>
 
         <!-- Contenu -->
-        <div class="overflow-y-auto">
+        <div class="overflow-y-auto" @dragover.prevent @drop="onDrop">
             <div v-for="file in files" :key="file.filename"
                 class="flex h-16 items-center hover:bg-NcGray rounded-lg border-b last:border-b-0 border-gray-300"
                 @click="handleClickElem(file)">
@@ -198,6 +198,39 @@ export default {
         toggleAddFilePopup() {
             this.isAddFilePopupVisible = !this.isAddFilePopupVisible;
             if (!this.isAddFilePopupVisible) this.newFileName = '';
+        },
+        async onDrop(event) {
+            // Récupérer les données transférées (fichier JSON)
+            const file = JSON.parse(event.dataTransfer.getData('file'));
+            // Gérer le déplacement du fichier ici
+            await this.moveFileToTarget(file);
+        },
+        async moveFileToTarget(file) {
+            console.log(file);
+            const fileData = JSON.parse(event.dataTransfer.getData('file'));
+            console.log(fileData);
+            
+            const client = getClient();  // Votre client WebDAV (assurez-vous que c'est bien un client qui prend en charge les uploads)
+            // Exemple d'upload de fichier via un Blob
+            const path = this.current_dir + "/" + fileData.name;  // Chemin complet de destination sur le serveur WebDAV
+
+            // Créer un Blob à partir du fichier (si `file` est un objet `File` ou `Blob`)
+            // Exemple de conversion du fichier en Blob si nécessaire
+            const fileBlob = new Blob([fileData._data.compressedContent], { type: 'application/octet-stream' });
+            console.log(fileBlob)
+
+            try {
+                // Utilisation de PUT pour télécharger le fichier sur WebDAV
+                await client.putFileContents(path, fileBlob);
+
+                // Logique pour déplacer le fichier dans la liste, si nécessaire
+                await this.fetchFiles();  // Met à jour la liste des fichiers après l'upload
+                // Vous pouvez aussi retirer ce fichier du premier template, si nécessaire
+                // this.$emit('removeFile', file);
+
+            } catch (error) {
+                console.error('Erreur lors du déplacement du fichier:', error);
+            }
         }
     }
 };

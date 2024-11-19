@@ -995,6 +995,38 @@ __webpack_require__.r(__webpack_exports__);
     toggleAddFilePopup() {
       this.isAddFilePopupVisible = !this.isAddFilePopupVisible;
       if (!this.isAddFilePopupVisible) this.newFileName = '';
+    },
+    async onDrop(event) {
+      // Récupérer les données transférées (fichier JSON)
+      const file = JSON.parse(event.dataTransfer.getData('file'));
+      // Gérer le déplacement du fichier ici
+      await this.moveFileToTarget(file);
+    },
+    async moveFileToTarget(file) {
+      console.log(file);
+      const fileData = JSON.parse(event.dataTransfer.getData('file'));
+      console.log(fileData);
+      const client = (0,_nextcloud_files_dav__WEBPACK_IMPORTED_MODULE_0__.getClient)(); // Votre client WebDAV (assurez-vous que c'est bien un client qui prend en charge les uploads)
+      // Exemple d'upload de fichier via un Blob
+      const path = this.current_dir + "/" + fileData.name; // Chemin complet de destination sur le serveur WebDAV
+
+      // Créer un Blob à partir du fichier (si `file` est un objet `File` ou `Blob`)
+      // Exemple de conversion du fichier en Blob si nécessaire
+      const fileBlob = new Blob([fileData._data.compressedContent], {
+        type: 'application/octet-stream'
+      });
+      console.log(fileBlob);
+      try {
+        // Utilisation de PUT pour télécharger le fichier sur WebDAV
+        await client.putFileContents(path, fileBlob);
+
+        // Logique pour déplacer le fichier dans la liste, si nécessaire
+        await this.fetchFiles(); // Met à jour la liste des fichiers après l'upload
+        // Vous pouvez aussi retirer ce fichier du premier template, si nécessaire
+        // this.$emit('removeFile', file);
+      } catch (error) {
+        console.error('Erreur lors du déplacement du fichier:', error);
+      }
     }
   }
 });
@@ -1020,6 +1052,7 @@ __webpack_require__.r(__webpack_exports__);
   data() {
     return {
       zipContent: [],
+      pathTable: [],
       folderMap: {} // Map to track folder open/close state
     };
   },
@@ -1082,7 +1115,8 @@ __webpack_require__.r(__webpack_exports__);
                 name: partName,
                 isDirectory,
                 size: isDirectory ? 0 : file._data.uncompressedSize,
-                children: isDirectory ? [] : null
+                children: isDirectory ? [] : null,
+                file: file
               };
               currentLevel.push(existing);
             }
@@ -1118,6 +1152,10 @@ __webpack_require__.r(__webpack_exports__);
       if (!file.isDirectory) return;
       const currentState = this.folderMap[file.fullPath];
       this.$set(this.folderMap, file.fullPath, !currentState);
+    },
+    onDragStart(file, event) {
+      // Sauvegarder l'objet du fichier dans l'événement
+      event.dataTransfer.setData('file', JSON.stringify(file.file));
     }
   }
 });
@@ -1263,7 +1301,13 @@ var render = function render() {
       click: _vm.createNewFile
     }
   }, [_vm._v("\n                    Créer\n                ")])])])]) : _vm._e(), _vm._v(" "), _vm._m(0), _vm._v(" "), _c("div", {
-    staticClass: "overflow-y-auto"
+    staticClass: "overflow-y-auto",
+    on: {
+      dragover: function ($event) {
+        $event.preventDefault();
+      },
+      drop: _vm.onDrop
+    }
   }, _vm._l(_vm.files, function (file) {
     return _c("div", {
       key: file.filename,
@@ -1355,7 +1399,7 @@ var render = function render() {
     _c = _vm._self._c;
   return _c("div", {
     staticClass: "flex flex-col h-full w-full border"
-  }, [_vm._m(0), _vm._v(" "), _c("div", {
+  }, [_c("div", {
     staticClass: "overflow-y-auto"
   }, _vm._l(_vm.sortedFiles, function (file, index) {
     return _c("div", {
@@ -1363,9 +1407,15 @@ var render = function render() {
       staticClass: "flex flex-col"
     }, [file.isDirectory ? _c("div", {
       staticClass: "flex items-center pl-4 cursor-pointer",
+      attrs: {
+        draggable: "true"
+      },
       on: {
         click: function ($event) {
           return _vm.toggleFolder(file);
+        },
+        dragstart: function ($event) {
+          return _vm.onDragStart(file, $event);
         }
       }
     }, [_c("div", {
@@ -1375,7 +1425,15 @@ var render = function render() {
     }, [_vm._v(_vm._s(_vm.folderMap[file.fullPath] ? "-" : "+"))]), _vm._v("\n                    " + _vm._s(file.fullPath) + "\n                ")]), _vm._v(" "), _c("div", {
       staticClass: "w-1/6 px-4 py-2"
     }, [_vm._v("-")])]) : _c("div", {
-      staticClass: "flex items-center pl-4"
+      staticClass: "flex items-center pl-4",
+      attrs: {
+        draggable: "true"
+      },
+      on: {
+        dragstart: function ($event) {
+          return _vm.onDragStart(file, $event);
+        }
+      }
     }, [_c("div", {
       staticClass: "w-5/6 flex items-center px-4 py-2 truncate"
     }, [_vm._v("\n                    " + _vm._s(file.fullPath) + "\n                ")]), _vm._v(" "), _c("div", {
@@ -1383,17 +1441,7 @@ var render = function render() {
     }, [_vm._v("\n                    " + _vm._s(_vm.formatFileSize(file.size)) + "\n                ")])])]);
   }), 0)]);
 };
-var staticRenderFns = [function () {
-  var _vm = this,
-    _c = _vm._self._c;
-  return _c("div", {
-    staticClass: "flex h-12 items-center border-b border-gray-300"
-  }, [_c("div", {
-    staticClass: "w-5/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300"
-  }, [_vm._v("Nom")]), _vm._v(" "), _c("div", {
-    staticClass: "w-1/6 px-4 py-2 text-gray-500 font-semibold"
-  }, [_vm._v("Taille")])]);
-}];
+var staticRenderFns = [];
 render._withStripped = true;
 
 
