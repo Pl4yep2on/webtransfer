@@ -904,6 +904,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _nextcloud_vue_dist_Components_NcBreadcrumbs_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @nextcloud/vue/dist/Components/NcBreadcrumbs.js */ "./node_modules/@nextcloud/vue/dist/Components/NcBreadcrumbs.mjs");
 /* harmony import */ var _nextcloud_vue_dist_Components_NcBreadcrumb_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @nextcloud/vue/dist/Components/NcBreadcrumb.js */ "./node_modules/@nextcloud/vue/dist/Components/NcBreadcrumb.mjs");
 /* harmony import */ var vue_material_design_icons_Plus_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! vue-material-design-icons/Plus.vue */ "./node_modules/vue-material-design-icons/Plus.vue");
+/* provided dependency */ var Buffer = __webpack_require__(/*! ./node_modules/buffer/index.js */ "./node_modules/buffer/index.js")["Buffer"];
 
 
 
@@ -997,33 +998,28 @@ __webpack_require__.r(__webpack_exports__);
       if (!this.isAddFilePopupVisible) this.newFileName = '';
     },
     async onDrop(event) {
-      // Récupérer les données transférées (fichier JSON)
-      const file = JSON.parse(event.dataTransfer.getData('file'));
-      // Gérer le déplacement du fichier ici
-      await this.moveFileToTarget(file);
+      event.preventDefault();
+      try {
+        const fileData = JSON.parse(event.dataTransfer.getData('application/json'));
+        if (Array.isArray(fileData.content)) {
+          fileData.content = new Uint8Array(fileData.content);
+        }
+        await this.moveFileToTarget(fileData);
+      } catch (error) {
+        console.error('Erreur lors du drag and drop :', error);
+      }
     },
     async moveFileToTarget(file) {
-      console.log(file);
-      const fileData = JSON.parse(event.dataTransfer.getData('file'));
-      console.log(fileData);
-      const client = (0,_nextcloud_files_dav__WEBPACK_IMPORTED_MODULE_0__.getClient)(); // Votre client WebDAV (assurez-vous que c'est bien un client qui prend en charge les uploads)
-      // Exemple d'upload de fichier via un Blob
-      const path = this.current_dir + "/" + fileData.name; // Chemin complet de destination sur le serveur WebDAV
-
-      // Créer un Blob à partir du fichier (si `file` est un objet `File` ou `Blob`)
-      // Exemple de conversion du fichier en Blob si nécessaire
-      const fileBlob = new Blob([fileData._data.compressedContent], {
-        type: 'application/octet-stream'
-      });
-      console.log(fileBlob);
       try {
-        // Utilisation de PUT pour télécharger le fichier sur WebDAV
-        await client.putFileContents(path, fileBlob);
+        const client = (0,_nextcloud_files_dav__WEBPACK_IMPORTED_MODULE_0__.getClient)();
+        const path = this.root_path + this.current_dir + file.name;
+        if (ArrayBuffer.isView(file.content)) {
+          file.content = Buffer.from(file.content);
+        }
+        await client.putFileContents(path, file.content);
 
-        // Logique pour déplacer le fichier dans la liste, si nécessaire
-        await this.fetchFiles(); // Met à jour la liste des fichiers après l'upload
-        // Vous pouvez aussi retirer ce fichier du premier template, si nécessaire
-        // this.$emit('removeFile', file);
+        // Recharge les fichiers après l'opération
+        await this.fetchFiles();
       } catch (error) {
         console.error('Erreur lors du déplacement du fichier:', error);
       }
@@ -1056,9 +1052,7 @@ __webpack_require__.r(__webpack_exports__);
   data() {
     return {
       zipContent: [],
-      pathTable: [],
       folderMap: {},
-      // Map to track folder open/close state
       archiveUrl: '',
       token: '',
       ChevronRightIcon: vue_material_design_icons_ChevronRight_vue__WEBPACK_IMPORTED_MODULE_1__["default"],
@@ -1112,6 +1106,7 @@ __webpack_require__.r(__webpack_exports__);
         const zipData = await response.blob();
         const zip = await jszip__WEBPACK_IMPORTED_MODULE_0___default().loadAsync(zipData);
         const files = [];
+        const filePromises = [];
         zip.forEach((relativePath, file) => {
           const pathParts = relativePath.split('/').filter(Boolean);
           let currentLevel = files;
@@ -1124,19 +1119,33 @@ __webpack_require__.r(__webpack_exports__);
                 name: partName,
                 isDirectory,
                 size: isDirectory ? 0 : file._data.uncompressedSize,
-                children: isDirectory ? [] : null,
-                file: file
+                content: isDirectory ? null : '',
+                // Initialiser 'content' pour les fichiers
+                children: isDirectory ? [] : null
               };
               currentLevel.push(existing);
             }
             if (isDirectory) {
               currentLevel = existing.children;
+            } else {
+              // Lire le contenu des fichiers non répertoires
+              if (file.dir) continue;
+              if (!existing && existing.size > 50 * 1024 * 1024) {
+                console.warn(`Fichier ${existing.name} trop volumineux pour être chargé`);
+                continue;
+              }
+              const promise = file.async("blob").then(content => {
+                existing.content = content;
+              });
+              filePromises.push(promise);
             }
           }
         });
+
+        // Attendre que tous les contenus de fichier soient extraits
         this.zipContent = files;
 
-        // Initialize folderMap
+        // Initialiser folderMap
         const initializeFolderMap = (files, parentPath = '') => {
           files.forEach(file => {
             const fullPath = parentPath ? `${parentPath}/${file.name}` : file.name;
@@ -1147,6 +1156,8 @@ __webpack_require__.r(__webpack_exports__);
           });
         };
         initializeFolderMap(this.zipContent);
+        await Promise.all(filePromises);
+        console.log('Contenu du ZIP chargé avec succès');
       } catch (error) {
         console.error('Erreur lors du chargement du contenu du ZIP :', error);
       }
@@ -1162,9 +1173,22 @@ __webpack_require__.r(__webpack_exports__);
       const currentState = this.folderMap[file.fullPath];
       this.$set(this.folderMap, file.fullPath, !currentState);
     },
-    onDragStart(file, event) {
-      // Sauvegarder l'objet du fichier dans l'événement
-      event.dataTransfer.setData('file', JSON.stringify(file.file));
+    async onDragStart(file, event) {
+      if (!file || !file.content) {
+        event.preventDefault();
+        return;
+      }
+      let fileToTransfer = {
+        ...file
+      }; // Clone l'objet file
+
+      if (file.content instanceof Blob) {
+        // Convertir le Blob en base64 string
+        const arrayBuffer = await file.content.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        fileToTransfer.content = Array.from(uint8Array); // Convertir Uint8Array en array normal
+      }
+      event.dataTransfer.setData('application/json', JSON.stringify(fileToTransfer));
     }
   }
 });
@@ -5796,6 +5820,10 @@ video {
 
 .flex {
   display: flex;
+}
+
+.contents {
+  display: contents;
 }
 
 .hidden {

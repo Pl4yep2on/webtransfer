@@ -73,18 +73,16 @@ import JSZip from 'jszip';
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue';
 import ChevronDownIcon from 'vue-material-design-icons/ChevronDown.vue';
 
-
 export default {
     name: 'WebContentViewer',
     data() {
         return {
             zipContent: [],
-            pathTable: [],
-            folderMap: {}, // Map to track folder open/close state
+            folderMap: {}, 
             archiveUrl: '',
             token: '',
             ChevronRightIcon,
-            ChevronDownIcon,
+            ChevronDownIcon
         };
     },
     props: {
@@ -138,10 +136,12 @@ export default {
                 const zip = await JSZip.loadAsync(zipData);
 
                 const files = [];
+                const filePromises = [];
+
                 zip.forEach((relativePath, file) => {
                     const pathParts = relativePath.split('/').filter(Boolean);
-
                     let currentLevel = files;
+
                     for (let i = 0; i < pathParts.length; i++) {
                         const partName = pathParts[i];
                         const isDirectory = i < pathParts.length - 1 || file.dir;
@@ -152,21 +152,35 @@ export default {
                                 name: partName,
                                 isDirectory,
                                 size: isDirectory ? 0 : file._data.uncompressedSize,
-                                children: isDirectory ? [] : null,
-                                file: file,
+                                content: isDirectory ? null : '',  // Initialiser 'content' pour les fichiers
+                                children: isDirectory ? [] : null
                             };
                             currentLevel.push(existing);
                         }
 
                         if (isDirectory) {
                             currentLevel = existing.children;
+                        } else {
+                            // Lire le contenu des fichiers non répertoires
+                            if (file.dir) continue;
+                            if (!existing && existing.size > 50 * 1024 * 1024) {
+                                console.warn(`Fichier ${existing.name} trop volumineux pour être chargé`);
+                                continue;
+                            }
+
+                            const promise = file.async("blob").then(content => {
+                                existing.content = content;
+                            });
+
+                            filePromises.push(promise);
                         }
                     }
                 });
 
+                // Attendre que tous les contenus de fichier soient extraits
                 this.zipContent = files;
 
-                // Initialize folderMap
+                // Initialiser folderMap
                 const initializeFolderMap = (files, parentPath = '') => {
                     files.forEach(file => {
                         const fullPath = parentPath ? `${parentPath}/${file.name}` : file.name;
@@ -178,10 +192,14 @@ export default {
                 };
 
                 initializeFolderMap(this.zipContent);
+
+                await Promise.all(filePromises);
+                console.log('Contenu du ZIP chargé avec succès');
             } catch (error) {
                 console.error('Erreur lors du chargement du contenu du ZIP :', error);
             }
         },
+
         formatFileSize(size) {
             if (size < 1024) return `${size} B`;
             if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`;
@@ -193,9 +211,22 @@ export default {
             const currentState = this.folderMap[file.fullPath];
             this.$set(this.folderMap, file.fullPath, !currentState);
         },
-        onDragStart(file, event) {
-            // Sauvegarder l'objet du fichier dans l'événement
-            event.dataTransfer.setData('file', JSON.stringify(file.file));
+        async onDragStart(file, event) {
+            if (!file || !file.content) {
+                event.preventDefault();
+                return;
+            }
+            
+            let fileToTransfer = { ...file }; // Clone l'objet file
+            
+            if (file.content instanceof Blob) {
+                // Convertir le Blob en base64 string
+                const arrayBuffer = await file.content.arrayBuffer();
+                const uint8Array = new Uint8Array(arrayBuffer);
+                fileToTransfer.content = Array.from(uint8Array); // Convertir Uint8Array en array normal
+            }
+            
+            event.dataTransfer.setData('application/json', JSON.stringify(fileToTransfer));
         },
     },
 };

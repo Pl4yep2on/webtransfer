@@ -200,34 +200,32 @@ export default {
             if (!this.isAddFilePopupVisible) this.newFileName = '';
         },
         async onDrop(event) {
-            // Récupérer les données transférées (fichier JSON)
-            const file = JSON.parse(event.dataTransfer.getData('file'));
-            // Gérer le déplacement du fichier ici
-            await this.moveFileToTarget(file);
+            event.preventDefault();
+            try {
+                const fileData = JSON.parse(event.dataTransfer.getData('application/json'));
+                
+                if (Array.isArray(fileData.content)) {
+                    fileData.content = new Uint8Array(fileData.content);
+                }
+                
+                await this.moveFileToTarget(fileData);
+            } catch (error) {
+                console.error('Erreur lors du drag and drop :', error);
+            }
         },
         async moveFileToTarget(file) {
-            console.log(file);
-            const fileData = JSON.parse(event.dataTransfer.getData('file'));
-            console.log(fileData);
-            
-            const client = getClient();  // Votre client WebDAV (assurez-vous que c'est bien un client qui prend en charge les uploads)
-            // Exemple d'upload de fichier via un Blob
-            const path = this.current_dir + "/" + fileData.name;  // Chemin complet de destination sur le serveur WebDAV
-
-            // Créer un Blob à partir du fichier (si `file` est un objet `File` ou `Blob`)
-            // Exemple de conversion du fichier en Blob si nécessaire
-            const fileBlob = new Blob([fileData._data.compressedContent], { type: 'application/octet-stream' });
-            console.log(fileBlob)
-
             try {
-                // Utilisation de PUT pour télécharger le fichier sur WebDAV
-                await client.putFileContents(path, fileBlob);
+                const client = getClient();
+                const path = this.root_path + this.current_dir + file.name;
+                
+                if (ArrayBuffer.isView(file.content)) {
+                    file.content = Buffer.from(file.content);
+                }
 
-                // Logique pour déplacer le fichier dans la liste, si nécessaire
-                await this.fetchFiles();  // Met à jour la liste des fichiers après l'upload
-                // Vous pouvez aussi retirer ce fichier du premier template, si nécessaire
-                // this.$emit('removeFile', file);
+                await client.putFileContents(path, file.content);
 
+                // Recharge les fichiers après l'opération
+                await this.fetchFiles();
             } catch (error) {
                 console.error('Erreur lors du déplacement du fichier:', error);
             }
