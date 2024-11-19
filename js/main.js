@@ -1362,25 +1362,61 @@ var render = function render() {
       key: file.fullPath,
       staticClass: "flex flex-col"
     }, [file.isDirectory ? _c("div", {
-      staticClass: "flex items-center pl-4 cursor-pointer",
+      staticClass: "flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300",
       on: {
         click: function ($event) {
           return _vm.toggleFolder(file);
         }
       }
     }, [_c("div", {
-      staticClass: "w-5/6 flex items-center px-4 py-2 truncate"
-    }, [_c("span", {
-      staticClass: "mr-2"
-    }, [_vm._v(_vm._s(_vm.folderMap[file.fullPath] ? "-" : "+"))]), _vm._v("\n                    " + _vm._s(file.fullPath) + "\n                ")]), _vm._v(" "), _c("div", {
-      staticClass: "w-1/6 px-4 py-2"
-    }, [_vm._v("-")])]) : _c("div", {
-      staticClass: "flex items-center pl-4"
+      staticClass: "w-4/6 flex items-center py-2 border-r border-gray-300 cursor-pointer"
     }, [_c("div", {
-      staticClass: "w-5/6 flex items-center px-4 py-2 truncate"
+      staticClass: "w-12 h-12 flex items-center justify-center cursor-pointer"
+    }, [[_c("svg", {
+      staticClass: "text-NcBlue w-10 h-10",
+      attrs: {
+        fill: "currentColor",
+        viewBox: "0 0 24 24"
+      }
+    }, [_c("path", {
+      attrs: {
+        d: "M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"
+      }
+    })])]], 2), _vm._v(" "), _c("span", {
+      staticClass: "mr-2 truncate cursor-pointer"
+    }, [_vm._v(_vm._s(_vm.folderMap[file.fullPath] ? "-" : "+"))]), _vm._v("\n                    " + _vm._s(file.fullPath) + "\n                ")]), _vm._v(" "), _c("div", {
+      staticClass: "w-1/6 px-4 py-2 cursor-pointer"
+    }, [_vm._v("-")])]) : _c("div", {
+      staticClass: "flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
+    }, [[_c("div", {
+      staticClass: "flex items-center justify-center cursor-pointer"
+    }, [_c("svg", {
+      staticClass: "w-10 h-10",
+      staticStyle: {
+        "fill-rule": "evenodd",
+        "clip-rule": "evenodd",
+        "stroke-linejoin": "round",
+        "stroke-miterlimit": "2"
+      },
+      attrs: {
+        viewBox: "0 0 16 16",
+        xmlns: "http://www.w3.org/2000/svg",
+        "xml:space": "preserve"
+      }
+    }, [_c("path", {
+      staticStyle: {
+        fill: "#969696",
+        "fill-rule": "nonzero"
+      },
+      attrs: {
+        d: "M6 22c-.55 0-1.021-.196-1.412-.587A1.927 1.927 0 0 1 4 20V4c0-.55.196-1.021.588-1.413A1.926 1.926 0 0 1 6 2h8l6 6v12a1.93 1.93 0 0 1-.587 1.413A1.93 1.93 0 0 1 18 22H6Z",
+        transform: "matrix(.7 0 0 .7 -.43 -.388)"
+      }
+    })])])], _vm._v(" "), _c("div", {
+      staticClass: "w-4/6 flex items-center px-4 py-2 truncate cursor-pointer"
     }, [_vm._v("\n                    " + _vm._s(file.fullPath) + "\n                ")]), _vm._v(" "), _c("div", {
-      staticClass: "w-1/6 px-4 py-2"
-    }, [_vm._v("\n                    " + _vm._s(_vm.formatFileSize(file.size)) + "\n                ")])])]);
+      staticClass: "w-2/6 py-2 cursor-pointer"
+    }, [_vm._v("\n                    " + _vm._s(_vm.formatFileSize(file.size)) + "\n                ")])], 2)]);
   }), 0)]);
 };
 var staticRenderFns = [function () {
@@ -1389,9 +1425,9 @@ var staticRenderFns = [function () {
   return _c("div", {
     staticClass: "flex h-12 items-center border-b border-gray-300"
   }, [_c("div", {
-    staticClass: "w-5/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300"
+    staticClass: "w-4/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300"
   }, [_vm._v("Nom")]), _vm._v(" "), _c("div", {
-    staticClass: "w-1/6 px-4 py-2 text-gray-500 font-semibold"
+    staticClass: "w-2/6 px-4 py-2 text-gray-500 font-semibold"
   }, [_vm._v("Taille")])]);
 }];
 render._withStripped = true;
@@ -5746,6 +5782,10 @@ video {
 
 .w-5\\/6 {
   width: 83.333333%;
+}
+
+.w-2\\/6 {
+  width: 33.333333%;
 }
 
 .flex-grow {
