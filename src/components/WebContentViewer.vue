@@ -22,8 +22,16 @@
                                 </svg>
                             </template>
                         </div>
-                        <span class="mr-2 truncate cursor-pointer">{{ folderMap[file.fullPath] ? '-' : '+' }}</span>
-                        {{ file.fullPath }}
+                        <div class="w-4/6 flex items-center py-2 border-r border-gray-300 cursor-pointer">
+                            <!-- Icône dynamique pour plié/déplié -->
+                            <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
+                                <component 
+                                    :is="folderMap[file.fullPath] ? ChevronDownIcon : ChevronRightIcon" 
+                                    class="text-NcBlue w-3 h-6"
+                                />
+                            </div>
+                            <span class="ml-2 truncate cursor-pointer">{{ file.fullPath }}</span>
+                        </div>
                     </div>
                     <div class="w-1/6 px-4 py-2 cursor-pointer">-</div>
                 </div>
@@ -58,6 +66,9 @@
 
 <script>
 import JSZip from 'jszip';
+import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue';
+import ChevronDownIcon from 'vue-material-design-icons/ChevronDown.vue';
+
 
 export default {
     name: 'WebContentViewer',
@@ -65,6 +76,10 @@ export default {
         return {
             zipContent: [],
             folderMap: {}, // Map to track folder open/close state
+            archiveUrl: '',
+            token: '',
+            ChevronRightIcon,
+            ChevronDownIcon,
         };
     },
     props: {

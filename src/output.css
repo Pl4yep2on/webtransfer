@@ -651,6 +651,10 @@ video {
   height: 1.25rem;
 }
 
+.h-6 {
+  height: 1.5rem;
+}
+
 .max-h-8 {
   max-height: 2rem;
 }
@@ -689,6 +693,14 @@ video {
 
 .w-2\/6 {
   width: 33.333333%;
+}
+
+.w-6 {
+  width: 1.5rem;
+}
+
+.w-3 {
+  width: 0.75rem;
 }
 
 .flex-grow {
