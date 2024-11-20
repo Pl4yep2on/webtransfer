@@ -1129,6 +1129,12 @@ __webpack_require__.r(__webpack_exports__);
             const partName = pathParts[i];
             const isDirectory = i < pathParts.length - 1 || file.dir;
             let existing = currentLevel.find(f => f.name === partName && f.isDirectory === isDirectory);
+            let promise;
+            if (!isDirectory) {
+              promise = file.async("blob").then(content => {
+                existing.content = content;
+              });
+            }
             if (!existing) {
               existing = {
                 name: partName,
@@ -1136,23 +1142,13 @@ __webpack_require__.r(__webpack_exports__);
                 size: isDirectory ? 0 : file._data.uncompressedSize,
                 content: isDirectory ? null : '',
                 // Initialiser 'content' pour les fichiers
-                children: isDirectory ? [] : null
+                children: isDirectory ? [] : null,
+                unzip: promise
               };
               currentLevel.push(existing);
             }
             if (isDirectory) {
               currentLevel = existing.children;
-            } else {
-              // Lire le contenu des fichiers non répertoires
-              if (file.dir) continue;
-              if (!existing && existing.size > 50 * 1024 * 1024) {
-                console.warn(`Fichier ${existing.name} trop volumineux pour être chargé`);
-                continue;
-              }
-              const promise = file.async("blob").then(content => {
-                existing.content = content;
-              });
-              filePromises.push(promise);
             }
           }
         });
@@ -1171,7 +1167,6 @@ __webpack_require__.r(__webpack_exports__);
           });
         };
         initializeFolderMap(this.zipContent);
-        await Promise.all(filePromises);
         console.log('Contenu du ZIP chargé avec succès');
       } catch (error) {
         console.error('Erreur lors du chargement du contenu du ZIP :', error);
@@ -1190,6 +1185,7 @@ __webpack_require__.r(__webpack_exports__);
     },
     async onDragStart(file) {
       console.log('Drag start', file);
+      await file.unzip;
       this.$emit('file-upload', file);
     }
   }
