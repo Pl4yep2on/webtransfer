@@ -136,7 +136,6 @@ export default {
                 const zip = await JSZip.loadAsync(zipData);
 
                 const files = [];
-                const filePromises = [];
 
                 zip.forEach((relativePath, file) => {
                     const pathParts = relativePath.split('/').filter(Boolean);
