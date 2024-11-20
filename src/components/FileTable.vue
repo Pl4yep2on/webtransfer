@@ -246,6 +246,7 @@ export default {
 
             } catch (error) {
                 console.error('Erreur lors du drop :', error);
+                this.isTransfering = false;
             }
         },
         async moveFileToTarget(file) {
