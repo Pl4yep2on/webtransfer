@@ -69,10 +69,9 @@
 </template>
 
 <script>
-import JSZip, { files } from 'jszip';
+import JSZip from 'jszip';
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue';
 import ChevronDownIcon from 'vue-material-design-icons/ChevronDown.vue';
-import path from 'path';
 
 export default {
     name: 'WebContentViewer',
