@@ -884,6 +884,16 @@ __webpack_require__.r(__webpack_exports__);
   components: {
     FileTable: _components_FileTable_vue__WEBPACK_IMPORTED_MODULE_0__["default"],
     WebContentViewer: _components_WebContentViewer_vue__WEBPACK_IMPORTED_MODULE_1__["default"]
+  },
+  data() {
+    return {
+      sharedFile: null
+    };
+  },
+  methods: {
+    handleFileUpload(file) {
+      this.sharedFile = file;
+    }
   }
 });
 
@@ -915,6 +925,12 @@ __webpack_require__.r(__webpack_exports__);
     NcBreadcrumbs: _nextcloud_vue_dist_Components_NcBreadcrumbs_js__WEBPACK_IMPORTED_MODULE_1__["default"],
     NcBreadcrumb: _nextcloud_vue_dist_Components_NcBreadcrumb_js__WEBPACK_IMPORTED_MODULE_2__["default"],
     Plus: vue_material_design_icons_Plus_vue__WEBPACK_IMPORTED_MODULE_3__["default"]
+  },
+  props: {
+    file: {
+      type: Object,
+      default: null
+    }
   },
   data() {
     return {
@@ -1000,11 +1016,10 @@ __webpack_require__.r(__webpack_exports__);
     async onDrop(event) {
       event.preventDefault();
       try {
-        const fileData = JSON.parse(event.dataTransfer.getData('application/json'));
-        if (Array.isArray(fileData.content)) {
-          fileData.content = new Uint8Array(fileData.content);
-        }
-        await this.moveFileToTarget(fileData);
+        const file = this.file;
+        console.log('Fichier déposé :', file);
+        file.content = await file.content.arrayBuffer();
+        await this.moveFileToTarget(file);
       } catch (error) {
         console.error('Erreur lors du drag and drop :', error);
       }
@@ -1173,22 +1188,9 @@ __webpack_require__.r(__webpack_exports__);
       const currentState = this.folderMap[file.fullPath];
       this.$set(this.folderMap, file.fullPath, !currentState);
     },
-    async onDragStart(file, event) {
-      if (!file || !file.content) {
-        event.preventDefault();
-        return;
-      }
-      let fileToTransfer = {
-        ...file
-      }; // Clone l'objet file
-
-      if (file.content instanceof Blob) {
-        // Convertir le Blob en base64 string
-        const arrayBuffer = await file.content.arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
-        fileToTransfer.content = Array.from(uint8Array); // Convertir Uint8Array en array normal
-      }
-      event.dataTransfer.setData('application/json', JSON.stringify(fileToTransfer));
+    async onDragStart(file) {
+      console.log('Drag start', file);
+      this.$emit('file-upload', file);
     }
   }
 });
@@ -1222,10 +1224,17 @@ var render = function render() {
   }, [_c("WebContentViewer", {
     attrs: {
       zipUrl: "http://localhost:8000/dummyZip.zip"
+    },
+    on: {
+      "file-upload": _vm.handleFileUpload
     }
   })], 1), _vm._v(" "), _c("div", {
     staticClass: "w-full sm:w-2/3 max-sm:h-3/5 p-4 sm:m-6 bg-NcBlack rounded-xl"
-  }, [_c("FileTable")], 1)])]);
+  }, [_c("FileTable", {
+    attrs: {
+      file: _vm.sharedFile
+    }
+  })], 1)])]);
 };
 var staticRenderFns = [];
 render._withStripped = true;
@@ -1339,7 +1348,16 @@ var render = function render() {
       dragover: function ($event) {
         $event.preventDefault();
       },
-      drop: _vm.onDrop
+      dragenter: function ($event) {
+        $event.preventDefault();
+      },
+      dragleave: function ($event) {
+        $event.preventDefault();
+      },
+      drop: function ($event) {
+        $event.preventDefault();
+        return _vm.onDrop.apply(null, arguments);
+      }
     }
   }, _vm._l(_vm.files, function (file) {
     return _c("div", {
@@ -1448,7 +1466,7 @@ var render = function render() {
           return _vm.toggleFolder(file);
         },
         dragstart: function ($event) {
-          return _vm.onDragStart(file, $event);
+          return _vm.onDragStart(file);
         }
       }
     }, [_c("div", {
@@ -5774,10 +5792,6 @@ video {
   }
 }
 
-.visible {
-  visibility: visible;
-}
-
 .fixed {
   position: fixed;
 }
@@ -5814,20 +5828,8 @@ video {
   margin-top: 1rem;
 }
 
-.mr-2 {
-  margin-right: 0.5rem;
-}
-
 .flex {
   display: flex;
-}
-
-.contents {
-  display: contents;
-}
-
-.hidden {
-  display: none;
 }
 
 .h-10 {
@@ -5842,16 +5844,12 @@ video {
   height: 4rem;
 }
 
-.h-full {
-  height: 100%;
-}
-
-.h-5 {
-  height: 1.25rem;
-}
-
 .h-6 {
   height: 1.5rem;
+}
+
+.h-full {
+  height: 100%;
 }
 
 .max-h-8 {
@@ -5870,8 +5868,16 @@ video {
   width: 3rem;
 }
 
+.w-2\\/6 {
+  width: 33.333333%;
+}
+
 .w-4\\/6 {
   width: 66.666667%;
+}
+
+.w-6 {
+  width: 1.5rem;
 }
 
 .w-96 {
@@ -5880,35 +5886,6 @@ video {
 
 .w-full {
   width: 100%;
-}
-
-.w-5 {
-  width: 1.25rem;
-}
-
-.w-5\\/6 {
-  width: 83.333333%;
-}
-
-.w-2\\/6 {
-  width: 33.333333%;
-}
-
-.w-6 {
-  width: 1.5rem;
-}
-
-.w-3 {
-  width: 0.75rem;
-}
-
-.flex-grow {
-  flex-grow: 1;
-}
-
-.rotate-90 {
-  --tw-rotate: 90deg;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
 .transform {
@@ -5983,10 +5960,6 @@ video {
   border-right-width: 1px;
 }
 
-.border-t {
-  border-top-width: 1px;
-}
-
 .border-gray-300 {
   --tw-border-opacity: 1;
   border-color: rgb(209 213 219 / var(--tw-border-opacity, 1));
@@ -6025,16 +5998,6 @@ video {
   background-color: rgb(55 65 81 / var(--tw-bg-opacity, 1));
 }
 
-.bg-gray-50 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(249 250 251 / var(--tw-bg-opacity, 1));
-}
-
-.bg-NcGray {
-  --tw-bg-opacity: 1;
-  background-color: rgb(33 33 33 / var(--tw-bg-opacity, 1));
-}
-
 .bg-opacity-50 {
   --tw-bg-opacity: 0.5;
 }
@@ -6055,15 +6018,6 @@ video {
 .py-2 {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
-}
-
-.px-2 {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-}
-
-.pl-8 {
-  padding-left: 2rem;
 }
 
 .pl-4 {
@@ -6108,11 +6062,6 @@ video {
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
 }
 
-.text-red-500 {
-  --tw-text-opacity: 1;
-  color: rgb(239 68 68 / var(--tw-text-opacity, 1));
-}
-
 .shadow-lg {
   --tw-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);
@@ -6127,12 +6076,6 @@ video {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-backdrop-filter;
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-backdrop-filter;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
-.transition-transform {
-  transition-property: transform;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -6159,11 +6102,6 @@ video {
 .hover\\:bg-gray-300:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(209 213 219 / var(--tw-bg-opacity, 1));
-}
-
-.hover\\:bg-gray-100:hover {
-  --tw-bg-opacity: 1;
-  background-color: rgb(243 244 246 / var(--tw-bg-opacity, 1));
 }
 
 .focus\\:outline-none:focus {

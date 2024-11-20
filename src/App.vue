@@ -5,12 +5,12 @@
 			<!-- Première section -->
 			<div 
 				class="w-full sm:w-1/3 max-sm:h-2/5 p-4 sm:m-6 rounded-xl bg-NcBlack/40">
-				<WebContentViewer zipUrl="http://localhost:8000/dummyZip.zip"/>
+				<WebContentViewer @file-upload="handleFileUpload" zipUrl="http://localhost:8000/dummyZip.zip"/>
 			</div>
 			<!-- Deuxième section -->
 			<div 
 				class="w-full sm:w-2/3 max-sm:h-3/5 p-4 sm:m-6 bg-NcBlack rounded-xl">
-				<FileTable/>
+				<FileTable :file="sharedFile"/>
 			</div>
 		</div>
 	</div>
@@ -26,7 +26,17 @@ export default {
 	components: {
 		FileTable,
 		WebContentViewer  
-	}
+	},
+	data() {
+		return {
+		sharedFile: null,
+		};
+	},
+	methods: {
+		handleFileUpload(file) {
+		this.sharedFile = file;
+		},
+	},
 }
 </script>
 

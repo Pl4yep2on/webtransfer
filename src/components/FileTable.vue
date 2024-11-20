@@ -59,7 +59,7 @@
         </div>
 
         <!-- Contenu -->
-        <div class="overflow-y-auto" @dragover.prevent @drop="onDrop">
+        <div class="overflow-y-auto" @dragover.prevent @dragenter.prevent @dragleave.prevent @drop.prevent="onDrop">
             <div v-for="file in files" :key="file.filename"
                 class="flex h-16 items-center hover:bg-NcGray rounded-lg border-b last:border-b-0 border-gray-300"
                 @click="handleClickElem(file)">
@@ -118,6 +118,12 @@ export default {
         NcBreadcrumbs,
         NcBreadcrumb,
         Plus
+    },
+    props: {
+        file: {
+        type: Object,
+        default: null,
+        },
     },
     data() {
         return {
@@ -202,13 +208,10 @@ export default {
         async onDrop(event) {
             event.preventDefault();
             try {
-                const fileData = JSON.parse(event.dataTransfer.getData('application/json'));
-                
-                if (Array.isArray(fileData.content)) {
-                    fileData.content = new Uint8Array(fileData.content);
-                }
-                
-                await this.moveFileToTarget(fileData);
+                const file = this.file;
+                console.log('Fichier déposé :', file);
+                file.content = await file.content.arrayBuffer();
+                await this.moveFileToTarget(file);
             } catch (error) {
                 console.error('Erreur lors du drag and drop :', error);
             }

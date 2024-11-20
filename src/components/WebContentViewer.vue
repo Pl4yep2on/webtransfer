@@ -12,7 +12,7 @@
                     @click="toggleFolder(file)"
                     v-if="file.isDirectory"
                     draggable="true" 
-                    @dragstart="onDragStart(file, $event)"
+                    @dragstart="onDragStart(file)"
                 >
                     <div class="w-4/6 flex items-center py-2 border-r border-gray-300 cursor-pointer">
                         <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
@@ -211,23 +211,10 @@ export default {
             const currentState = this.folderMap[file.fullPath];
             this.$set(this.folderMap, file.fullPath, !currentState);
         },
-        async onDragStart(file, event) {
-            if (!file || !file.content) {
-                event.preventDefault();
-                return;
-            }
-            
-            let fileToTransfer = { ...file }; // Clone l'objet file
-            
-            if (file.content instanceof Blob) {
-                // Convertir le Blob en base64 string
-                const arrayBuffer = await file.content.arrayBuffer();
-                const uint8Array = new Uint8Array(arrayBuffer);
-                fileToTransfer.content = Array.from(uint8Array); // Convertir Uint8Array en array normal
-            }
-            
-            event.dataTransfer.setData('application/json', JSON.stringify(fileToTransfer));
-        },
+        async onDragStart(file) {
+            console.log('Drag start', file);
+            this.$emit('file-upload', file); 
+        }
     },
 };
 </script>
