@@ -133,6 +133,7 @@ export default {
             breadcrumbParts: [],
             isAddFilePopupVisible: false,
             newFileName: '',
+            isTransfering: false,
         };
     },
     async mounted() {
@@ -171,6 +172,7 @@ export default {
             return this.current_dir.split('/').filter(part => part);
         },
         async handleClickElem(file) {
+            if (this.isTransfering) return;
             if (file.type === 'directory') {
                 this.current_dir = this.current_dir === '/' ? '/' + file.basename : this.current_dir + '/' + file.basename;
                 this.breadcrumbParts = this.getBreadcrumbParts()
@@ -180,6 +182,7 @@ export default {
             }
         },
         async handleClickBreadcrumb(index) {
+            if (this.isTransfering) return;
             let dir = '/';
             if (index >= -1) {
                 dir = this.generateCrumbHref(index);
@@ -207,30 +210,77 @@ export default {
         },
         async onDrop(event) {
             event.preventDefault();
+            
             try {
+                const moveFilesOfFolder = async (folder) => {
+
+                    await this.createFolder(folder);
+
+                    for (const child of folder.children) {
+                        if (child.isDirectory) {
+                            await moveFilesOfFolder(child);
+                        } else {
+                            if (child.content && typeof child.content.arrayBuffer === 'function') {
+                                child.content = await child.content.arrayBuffer();
+                            }
+                            await this.moveFileToTarget(child);
+                        }
+                    }
+                };
+
+                this.isTransfering = true;
                 const file = this.file;
+                if (!file) return;
                 console.log('Fichier déposé :', file);
-                file.content = await file.content.arrayBuffer();
-                await this.moveFileToTarget(file);
+
+                if (file.isDirectory) {
+                    await moveFilesOfFolder(file);
+                } else {
+                    if (file.content && typeof file.content.arrayBuffer === 'function') {
+                        file.content = await file.content.arrayBuffer();
+                    }
+                    await this.moveFileToTarget(file);
+                }
+
+                this.isTransfering = false;
+
             } catch (error) {
-                console.error('Erreur lors du drag and drop :', error);
+                console.error('Erreur lors du drop :', error);
             }
         },
         async moveFileToTarget(file) {
             try {
                 const client = getClient();
-                const path = this.root_path + this.current_dir + file.name;
-                
+
+                // Assurez-vous que le chemin parent est correctement formaté
+                const parentPath = file.parentPath ? `${file.parentPath}/` : '';
+                const fullPath = `${this.root_path}${this.current_dir}${parentPath}${file.name}`;
+
                 if (ArrayBuffer.isView(file.content)) {
                     file.content = Buffer.from(file.content);
                 }
 
-                await client.putFileContents(path, file.content);
+                // Évitez les chemins incorrects en utilisant `path.normalize` si disponible
+                await client.putFileContents(fullPath, file.content);
 
                 // Recharge les fichiers après l'opération
                 await this.fetchFiles();
             } catch (error) {
                 console.error('Erreur lors du déplacement du fichier:', error);
+            }
+        },
+        async createFolder(folder) {
+            try {
+                const client = getClient();
+
+                // Assurez-vous que le chemin parent est correctement formaté
+                const parentPath = folder.parentPath ? `${folder.parentPath}/` : '';
+                const fullPath = `${this.root_path}${this.current_dir}${parentPath}${folder.name}/`;
+
+                await client.createDirectory(fullPath);
+                await this.fetchFiles();
+            } catch (error) {
+                console.error('Erreur lors de la création du dossier :', error);
             }
         }
     }

@@ -32,7 +32,7 @@
                                     class="text-NcBlue w-6 h-6"
                                 />
                             </div>
-                            <span class="ml-2 truncate cursor-pointer">{{ file.fullPath }}</span>
+                            <span class="ml-2 truncate cursor-pointer">{{ file.name }}</span>
                         </div>
                     </div>
                     <div class="w-1/6 px-4 py-2 cursor-pointer">-</div>
@@ -56,7 +56,7 @@
                         </div>
                     </template>
                     <div class="w-4/6 flex items-center px-4 py-2 truncate cursor-pointer">
-                        {{ file.fullPath }}
+                        {{ file.name }}
                     </div>
                     <div class="w-2/6 py-2 cursor-pointer">
                         {{ formatFileSize(file.size) }}
@@ -69,9 +69,10 @@
 </template>
 
 <script>
-import JSZip from 'jszip';
+import JSZip, { files } from 'jszip';
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue';
 import ChevronDownIcon from 'vue-material-design-icons/ChevronDown.vue';
+import path from 'path';
 
 export default {
     name: 'WebContentViewer',
@@ -156,11 +157,13 @@ export default {
 
                         if (!existing) {
                             existing = {
-                                name: partName,
+                                name: pathParts[i],
                                 isDirectory,
                                 size: isDirectory ? 0 : file._data.uncompressedSize,
                                 content: isDirectory ? null : '',  // Initialiser 'content' pour les fichiers
                                 children: isDirectory ? [] : null,
+                                //remove the name of the file from the path
+                                parentPath: pathParts.slice(0, i).join('/'),
                                 unzip: promise
                             };
                             currentLevel.push(existing);
@@ -206,9 +209,35 @@ export default {
         },
         async onDragStart(file) {
             console.log('Drag start', file);
-            await file.unzip;
-            this.$emit('file-upload', file); 
-        }
+
+            const getFilesFromFolder = (folder) => {
+                const files = [];
+                if (!folder.children || folder.children.length === 0) return files;
+
+                for (let i = 0; i < folder.children.length; i++) {
+                    const child = folder.children[i];
+                    if (child.isDirectory) {
+                        files.push(...getFilesFromFolder(child));
+                    } else {
+                        files.push(child);
+                    }
+                }
+                return files;
+            };
+
+            try {
+                if (file.isDirectory) {
+                    const files = getFilesFromFolder(file);
+                    const filesToUnzip = files.map(file => file.unzip);
+                    await Promise.all(filesToUnzip);
+                } else {
+                    await file.unzip;
+                }
+                this.$emit('file-upload', file);
+            } catch (error) {
+                console.error('Erreur lors du drag start :', error);
+            }
+        },
     },
 };
 </script>
