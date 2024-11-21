@@ -639,6 +639,10 @@ video {
   height: 100%;
 }
 
+.h-24 {
+  height: 6rem;
+}
+
 .max-h-8 {
   max-height: 2rem;
 }
@@ -675,12 +679,12 @@ video {
   width: 100%;
 }
 
-.max-w-32 {
-  max-width: 8rem;
+.w-16 {
+  width: 4rem;
 }
 
-.max-w-48 {
-  max-width: 12rem;
+.w-24 {
+  width: 6rem;
 }
 
 .max-w-64 {
@@ -689,6 +693,16 @@ video {
 
 .transform {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
 .cursor-pointer {
