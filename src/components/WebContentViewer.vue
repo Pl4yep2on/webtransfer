@@ -163,7 +163,7 @@ export default {
                                 content: isDirectory ? null : '',  // Initialiser 'content' pour les fichiers
                                 children: isDirectory ? [] : null,
                                 //remove the name of the file from the path
-                                parentPath: pathParts.slice(0, i).join('/'),
+                                parentPath: i > 0 ? pathParts[i - 1] : '',
                                 unzip: promise
                             };
                             currentLevel.push(existing);
@@ -208,7 +208,6 @@ export default {
             this.$set(this.folderMap, file.fullPath, !currentState);
         },
         async onDragStart(file) {
-            console.log('Drag start', file);
 
             const getFilesFromFolder = (folder) => {
                 const files = [];

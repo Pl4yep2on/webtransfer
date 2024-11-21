@@ -940,7 +940,8 @@ __webpack_require__.r(__webpack_exports__);
       current_dir: '/',
       breadcrumbParts: [],
       isAddFilePopupVisible: false,
-      newFileName: ''
+      newFileName: '',
+      isTransfering: false
     };
   },
   async mounted() {
@@ -979,6 +980,7 @@ __webpack_require__.r(__webpack_exports__);
       return this.current_dir.split('/').filter(part => part);
     },
     async handleClickElem(file) {
+      if (this.isTransfering) return;
       if (file.type === 'directory') {
         this.current_dir = this.current_dir === '/' ? '/' + file.basename : this.current_dir + '/' + file.basename;
         this.breadcrumbParts = this.getBreadcrumbParts();
@@ -988,6 +990,7 @@ __webpack_require__.r(__webpack_exports__);
       }
     },
     async handleClickBreadcrumb(index) {
+      if (this.isTransfering) return;
       let dir = '/';
       if (index >= -1) {
         dir = this.generateCrumbHref(index);
@@ -1016,27 +1019,63 @@ __webpack_require__.r(__webpack_exports__);
     async onDrop(event) {
       event.preventDefault();
       try {
+        this.isTransfering = true;
         const file = this.file;
-        console.log('Fichier déposé :', file);
-        file.content = await file.content.arrayBuffer();
-        await this.moveFileToTarget(file);
+        if (!file) return;
+        if (file.isDirectory) {
+          await this.moveFilesOfFolder(file, '');
+        } else {
+          if (file.content && typeof file.content.arrayBuffer === 'function') {
+            file.content = await file.content.arrayBuffer();
+          }
+          await this.moveFileToTarget(file, '');
+        }
+        this.isTransfering = false;
       } catch (error) {
-        console.error('Erreur lors du drag and drop :', error);
+        console.error('Erreur lors du drop :', error);
+        this.isTransfering = false;
       }
     },
-    async moveFileToTarget(file) {
+    async moveFilesOfFolder(folder, parentPath) {
+      await this.createFolder(folder, parentPath);
+      for (const child of folder.children) {
+        if (child.isDirectory) {
+          await this.moveFilesOfFolder(child, parentPath + child.parentPath + '/');
+        } else {
+          if (child.content && typeof child.content.arrayBuffer === 'function') {
+            child.content = await child.content.arrayBuffer();
+          }
+          await this.moveFileToTarget(child, parentPath + child.parentPath + '/');
+        }
+      }
+    },
+    async moveFileToTarget(file, parentPath) {
       try {
         const client = (0,_nextcloud_files_dav__WEBPACK_IMPORTED_MODULE_0__.getClient)();
-        const path = this.root_path + this.current_dir + file.name;
+        // Assurez-vous que le chemin parent est correctement formaté
+
+        const fullPath = `${this.root_path}${this.current_dir}${parentPath}${file.name}`;
         if (ArrayBuffer.isView(file.content)) {
           file.content = Buffer.from(file.content);
         }
-        await client.putFileContents(path, file.content);
+
+        // Évitez les chemins incorrects en utilisant `path.normalize` si disponible
+        await client.putFileContents(fullPath, file.content);
 
         // Recharge les fichiers après l'opération
         await this.fetchFiles();
       } catch (error) {
         console.error('Erreur lors du déplacement du fichier:', error);
+      }
+    },
+    async createFolder(folder, parentPath) {
+      try {
+        const client = (0,_nextcloud_files_dav__WEBPACK_IMPORTED_MODULE_0__.getClient)();
+        const fullPath = `${this.root_path}${this.current_dir}${parentPath}/${folder.name}/`;
+        await client.createDirectory(fullPath);
+        await this.fetchFiles();
+      } catch (error) {
+        console.error('Erreur lors de la création du dossier :', error);
       }
     }
   }
@@ -1121,7 +1160,6 @@ __webpack_require__.r(__webpack_exports__);
         const zipData = await response.blob();
         const zip = await jszip__WEBPACK_IMPORTED_MODULE_0___default().loadAsync(zipData);
         const files = [];
-        const filePromises = [];
         zip.forEach((relativePath, file) => {
           const pathParts = relativePath.split('/').filter(Boolean);
           let currentLevel = files;
@@ -1137,12 +1175,14 @@ __webpack_require__.r(__webpack_exports__);
             }
             if (!existing) {
               existing = {
-                name: partName,
+                name: pathParts[i],
                 isDirectory,
                 size: isDirectory ? 0 : file._data.uncompressedSize,
                 content: isDirectory ? null : '',
                 // Initialiser 'content' pour les fichiers
                 children: isDirectory ? [] : null,
+                //remove the name of the file from the path
+                parentPath: i > 0 ? pathParts[i - 1] : '',
                 unzip: promise
               };
               currentLevel.push(existing);
@@ -1184,9 +1224,31 @@ __webpack_require__.r(__webpack_exports__);
       this.$set(this.folderMap, file.fullPath, !currentState);
     },
     async onDragStart(file) {
-      console.log('Drag start', file);
-      await file.unzip;
-      this.$emit('file-upload', file);
+      const getFilesFromFolder = folder => {
+        const files = [];
+        if (!folder.children || folder.children.length === 0) return files;
+        for (let i = 0; i < folder.children.length; i++) {
+          const child = folder.children[i];
+          if (child.isDirectory) {
+            files.push(...getFilesFromFolder(child));
+          } else {
+            files.push(child);
+          }
+        }
+        return files;
+      };
+      try {
+        if (file.isDirectory) {
+          const files = getFilesFromFolder(file);
+          const filesToUnzip = files.map(file => file.unzip);
+          await Promise.all(filesToUnzip);
+        } else {
+          await file.unzip;
+        }
+        this.$emit('file-upload', file);
+      } catch (error) {
+        console.error('Erreur lors du drag start :', error);
+      }
     }
   }
 });
@@ -1488,7 +1550,7 @@ var render = function render() {
       staticClass: "text-NcBlue w-6 h-6"
     })], 1), _vm._v(" "), _c("span", {
       staticClass: "ml-2 truncate cursor-pointer"
-    }, [_vm._v(_vm._s(file.fullPath))])])]), _vm._v(" "), _c("div", {
+    }, [_vm._v(_vm._s(file.name))])])]), _vm._v(" "), _c("div", {
       staticClass: "w-1/6 px-4 py-2 cursor-pointer"
     }, [_vm._v("-")])]) : _c("div", {
       staticClass: "flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300",
@@ -1525,8 +1587,10 @@ var render = function render() {
         transform: "matrix(.7 0 0 .7 -.43 -.388)"
       }
     })])])], _vm._v(" "), _c("div", {
-      staticClass: "w-4/6 flex items-center px-4 py-2 truncate cursor-pointer"
-    }, [_vm._v("\n                    " + _vm._s(file.fullPath) + "\n                ")]), _vm._v(" "), _c("div", {
+      staticClass: "w-4/6 flex items-center px-4 py-2 cursor-pointer"
+    }, [_c("div", {
+      staticClass: "truncate max-sm:max-w-32 max-w-64"
+    }, [_vm._v(_vm._s(file.name))])]), _vm._v(" "), _c("div", {
       staticClass: "w-2/6 py-2 cursor-pointer"
     }, [_vm._v("\n                    " + _vm._s(_vm.formatFileSize(file.size)) + "\n                ")])], 2)]);
   }), 0)]);
@@ -5884,6 +5948,18 @@ video {
   width: 100%;
 }
 
+.max-w-32 {
+  max-width: 8rem;
+}
+
+.max-w-48 {
+  max-width: 12rem;
+}
+
+.max-w-64 {
+  max-width: 16rem;
+}
+
 .transform {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
@@ -8419,7 +8495,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var tabbable__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tabbable */ "./node_modules/tabbable/dist/index.esm.js");
 /*!
-* focus-trap 7.6.1
+* focus-trap 7.6.2
 * @license MIT, https://github.com/focus-trap/focus-trap/blob/master/LICENSE
 */
 
@@ -8540,20 +8616,6 @@ var isKeyBackward = function isKeyBackward(e) {
 };
 var delay = function delay(fn) {
   return setTimeout(fn, 0);
-};
-
-// Array.find/findIndex() are not supported on IE; this replicates enough
-//  of Array.findIndex() for our needs
-var findIndex = function findIndex(arr, fn) {
-  var idx = -1;
-  arr.every(function (value, i) {
-    if (fn(value)) {
-      idx = i;
-      return false; // break
-    }
-    return true; // next
-  });
-  return idx;
 };
 
 /**
@@ -8941,7 +9003,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
         // REVERSE
 
         // is the target the first tabbable node in a group?
-        var startOfGroupIndex = findIndex(state.tabbableGroups, function (_ref4) {
+        var startOfGroupIndex = state.tabbableGroups.findIndex(function (_ref4) {
           var firstTabbableNode = _ref4.firstTabbableNode;
           return target === firstTabbableNode;
         });
@@ -8970,7 +9032,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
         // FORWARD
 
         // is the target the last tabbable node in a group?
-        var lastOfGroupIndex = findIndex(state.tabbableGroups, function (_ref5) {
+        var lastOfGroupIndex = state.tabbableGroups.findIndex(function (_ref5) {
           var lastTabbableNode = _ref5.lastTabbableNode;
           return target === lastTabbableNode;
         });
@@ -39850,7 +39912,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ purify)
 /* harmony export */ });
-/*! @license DOMPurify 3.2.0 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.0/LICENSE */
+/*! @license DOMPurify 3.2.1 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.1/LICENSE */
 
 const {
   entries,
@@ -40134,7 +40196,7 @@ const _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedType
 function createDOMPurify() {
   let window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
   const DOMPurify = root => createDOMPurify(root);
-  DOMPurify.version = '3.2.0';
+  DOMPurify.version = '3.2.1';
   DOMPurify.removed = [];
   if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document) {
     // Not running in a browser, provide a factory function
