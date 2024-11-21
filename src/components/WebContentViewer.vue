@@ -67,7 +67,7 @@
             </div>
         </div>
         <div v-if="isLoading" class="flex h-full items-center justify-center">
-            <component :is="Loading" class="text-white w-24 h-24 animate-spin" size="48" />
+            <component :is="Loading" class="text-white w-24 h-24 animate-spin" :size="40"/>
         </div>
         <div v-if="!isLoading && zipContent.length === 0" class="flex h-full items-center justify-center">
             <span class="text-gray-500">Aucun contenu à afficher</span>

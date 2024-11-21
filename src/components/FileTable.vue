@@ -51,9 +51,9 @@
 
         <!-- Contenu -->
         <div :class="[
-            'overflow-y-auto h-full rounded-xl relative',
+            'overflow-y-auto h-full rounded-xl',
             isDragging ? 'border-green-500 border-4 border-dashed transition-all ease-in-out' : ''
-        ]" @drop.prevent="onDrop">
+        ]" @drop.prevent="onDrop" @dragover.prevent="onDragOver" @dragenter.prevent @dragleave.prevent="onDragLeave($event)" >
 
             <div v-for="file in files" :key="file.filename"
                 class="flex h-16 items-center hover:bg-NcGray rounded-lg border-b last:border-b-0 border-gray-300"
@@ -95,11 +95,6 @@
                     {{ file.type === 'directory' ? '-' : formatFileSize(file.size) }}
                 </div>
             </div>
-
-            <div class="absolute top-0 left-0 w-full h-full"
-            @dragenter.prevent="onDragEnter" @dragleave.prevent="onDragLeave">
-            </div>
-
         </div>
 
     </div>
@@ -111,8 +106,7 @@
 import { getClient, getRootPath } from '@nextcloud/files/dav';
 import NcBreadcrumbs from '@nextcloud/vue/dist/Components/NcBreadcrumbs.js';
 import NcBreadcrumb from '@nextcloud/vue/dist/Components/NcBreadcrumb.js';
-import Plus from 'vue-material-design-icons/Plus.vue'
-import { ref } from 'vue';
+import Plus from 'vue-material-design-icons/Plus.vue';
 
 export default {
     name: 'FileTable',
@@ -136,7 +130,7 @@ export default {
             isAddFilePopupVisible: false,
             newFileName: '',
             isTransfering: false,
-            isDragging: ref(false),
+            isDragging: false
         };
     },
     async mounted() {
@@ -168,14 +162,6 @@ export default {
         generateCrumbHref(index) {
             const parts = this.breadcrumbParts.slice(0, index + 1);
             return '/' + parts.join('/');
-        },
-        onDragEnter(event) {
-            event.preventDefault();
-            this.isDragging = true;
-        },
-        onDragLeave(event) {
-            event.preventDefault();
-            this.isDragging = false;
         },
         getBreadcrumbParts() {
             // Si le current_dir est un simple '/', on le renvoie sous forme de tableau vide.
@@ -219,11 +205,24 @@ export default {
             this.isAddFilePopupVisible = !this.isAddFilePopupVisible;
             if (!this.isAddFilePopupVisible) this.newFileName = '';
         },
+        onDragOver(event) {
+            event.preventDefault();
+            if (!this.isDragging) {
+                this.isDragging = true;
+            } else {
+                return;
+            }
+        },
+        onDragLeave(event) {
+            event.preventDefault();
+            if (event.target === event.currentTarget) {
+                this.isDragging = false;
+            } 
+        },
         async onDrop(event) {
             event.preventDefault();
-            this.isDragging = false;
-
             try {
+                this.isDragging = false;
                 this.isTransfering = true;
                 const file = this.file;
                 if (!file) return;
