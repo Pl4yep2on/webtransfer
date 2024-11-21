@@ -216,34 +216,17 @@ export default {
             event.preventDefault();
 
             try {
-                const moveFilesOfFolder = async (folder) => {
-
-                    await this.createFolder(folder);
-
-                    for (const child of folder.children) {
-                        if (child.isDirectory) {
-                            await moveFilesOfFolder(child);
-                        } else {
-                            if (child.content && typeof child.content.arrayBuffer === 'function') {
-                                child.content = await child.content.arrayBuffer();
-                            }
-                            await this.moveFileToTarget(child);
-                        }
-                    }
-                };
-
                 this.isTransfering = true;
                 const file = this.file;
                 if (!file) return;
-                console.log('Fichier déposé :', file);
 
                 if (file.isDirectory) {
-                    await moveFilesOfFolder(file);
+                    await this.moveFilesOfFolder(file,'');
                 } else {
                     if (file.content && typeof file.content.arrayBuffer === 'function') {
                         file.content = await file.content.arrayBuffer();
                     }
-                    await this.moveFileToTarget(file);
+                    await this.moveFileToTarget(file, '');
                 }
 
                 this.isTransfering = false;
@@ -253,12 +236,26 @@ export default {
                 this.isTransfering = false;
             }
         },
-        async moveFileToTarget(file) {
+        async moveFilesOfFolder(folder, parentPath) {
+
+            await this.createFolder(folder, parentPath);
+
+            for (const child of folder.children) {
+                if (child.isDirectory) {
+                    await this.moveFilesOfFolder(child, parentPath + child.parentPath + '/');
+                } else {
+                    if (child.content && typeof child.content.arrayBuffer === 'function') {
+                        child.content = await child.content.arrayBuffer();
+                    }
+                    await this.moveFileToTarget(child, parentPath + child.parentPath + '/');
+                }
+            }
+        },
+        async moveFileToTarget(file, parentPath) {
             try {
                 const client = getClient();
-
                 // Assurez-vous que le chemin parent est correctement formaté
-                const parentPath = file.parentPath ? `${file.parentPath}/` : '';
+                
                 const fullPath = `${this.root_path}${this.current_dir}${parentPath}${file.name}`;
 
                 if (ArrayBuffer.isView(file.content)) {
@@ -274,13 +271,11 @@ export default {
                 console.error('Erreur lors du déplacement du fichier:', error);
             }
         },
-        async createFolder(folder) {
+        async createFolder(folder, parentPath) {
             try {
                 const client = getClient();
-
-                // Assurez-vous que le chemin parent est correctement formaté
-                const parentPath = folder.parentPath ? `${folder.parentPath}/` : '';
-                const fullPath = `${this.root_path}${this.current_dir}${parentPath}${folder.name}/`;
+                
+                const fullPath = `${this.root_path}${this.current_dir}${parentPath}/${folder.name}/`;
 
                 await client.createDirectory(fullPath);
                 await this.fetchFiles();

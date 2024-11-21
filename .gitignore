@@ -10,3 +10,6 @@
 /node_modules/
 
 /**/*Zone.Identifier
+
+/js/
+/src/output.css
