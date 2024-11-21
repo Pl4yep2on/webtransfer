@@ -6,15 +6,13 @@
             <NcBreadcrumbs class="max-h-8">
                 <NcBreadcrumb name="Home" title="Title of the Home folder" @click="handleClickBreadcrumb(-1)">
                 </NcBreadcrumb>
-                <NcBreadcrumb v-if="getBreadcrumbParts().length > 0" v-for="(part, index) in breadcrumbParts" :key="index"
-                    :name="part" @click="handleClickBreadcrumb(index)">
+                <NcBreadcrumb v-if="getBreadcrumbParts().length > 0" v-for="(part, index) in breadcrumbParts"
+                    :key="index" :name="part" @click="handleClickBreadcrumb(index)">
                 </NcBreadcrumb>
                 <template #actions>
                     <div class="flex items-center ml-2">
-                        <button 
-                            @click="toggleAddFilePopup" 
-                            class="flex items-center space-x-2 bg-blue-100 text-blue-600 font-medium px-4 py-2 rounded-md hover:bg-blue-200 transition"
-                        >
+                        <button @click="toggleAddFilePopup"
+                            class="flex items-center space-x-2 bg-blue-100 text-blue-600 font-medium px-4 py-2 rounded-md hover:bg-blue-200 transition">
                             <Plus :size="20" />
                             <span>Nouveau</span>
                         </button>
@@ -25,26 +23,19 @@
 
 
         <!-- Popup pour la création de fichier -->
-        <div v-if="isAddFilePopupVisible" class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50">
+        <div v-if="isAddFilePopupVisible"
+            class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50">
             <div class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
                 <h2 class="text-lg font-semibold mb-4">Créer un nouveau fichier</h2>
-                <input 
-                    v-model="newFileName" 
-                    type="text" 
-                    placeholder="Nom du fichier" 
-                    class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <input v-model="newFileName" type="text" placeholder="Nom du fichier"
+                    class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 <div class="flex justify-end mt-4 space-x-2">
-                    <button 
-                        @click="toggleAddFilePopup" 
-                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
-                    >
+                    <button @click="toggleAddFilePopup"
+                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">
                         Annuler
                     </button>
-                    <button 
-                        @click="createNewFile" 
-                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-                    >
+                    <button @click="createNewFile"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
                         Créer
                     </button>
                 </div>
@@ -60,7 +51,11 @@
         </div>
 
         <!-- Contenu -->
-        <div class="overflow-y-auto" @dragover.prevent @dragenter.prevent @dragleave.prevent @drop.prevent="onDrop">
+        <div :class="[
+            'overflow-y-auto h-full rounded-xl',
+            isDragging ? 'border-green-500 border-4 border-dashed transition-all ease-in-out' : ''
+        ]" @drop.prevent="onDrop" @dragover.prevent="onDragOver" @dragenter.prevent @dragleave.prevent="onDragLeave($event)" >
+
             <div v-for="file in files" :key="file.filename"
                 class="flex h-16 items-center hover:bg-NcGray rounded-lg border-b last:border-b-0 border-gray-300"
                 @click="handleClickElem(file)">
@@ -82,7 +77,8 @@
                                     style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2">
                                     <path
                                         d="M6 22c-.55 0-1.021-.196-1.412-.587A1.927 1.927 0 0 1 4 20V4c0-.55.196-1.021.588-1.413A1.926 1.926 0 0 1 6 2h8l6 6v12a1.93 1.93 0 0 1-.587 1.413A1.93 1.93 0 0 1 18 22H6Z"
-                                        style="fill:#969696;fill-rule:nonzero" transform="matrix(.7 0 0 .7 -.43 -.388)" />
+                                        style="fill:#969696;fill-rule:nonzero"
+                                        transform="matrix(.7 0 0 .7 -.43 -.388)" />
                                 </svg>
                             </div>
                         </template>
@@ -152,8 +148,8 @@ export default {
     },
     props: {
         file: {
-        type: Object,
-        default: null,
+            type: Object,
+            default: null,
         },
     },
     data() {
@@ -165,6 +161,7 @@ export default {
             isAddFilePopupVisible: false,
             newFileName: '',
             isTransfering: false,
+            isDragging: false,
             editDialogDisabled: true,
             initialFileName: '',
         };
@@ -241,10 +238,24 @@ export default {
             this.isAddFilePopupVisible = !this.isAddFilePopupVisible;
             if (!this.isAddFilePopupVisible) this.newFileName = '';
         },
+        onDragOver(event) {
+            event.preventDefault();
+            if (!this.isDragging) {
+                this.isDragging = true;
+            } else {
+                return;
+            }
+        },
+        onDragLeave(event) {
+            event.preventDefault();
+            if (event.target === event.currentTarget) {
+                this.isDragging = false;
+            } 
+        },
         async onDrop(event) {
             event.preventDefault();
-            
             try {
+                this.isDragging = false;
                 this.isTransfering = true;
                 const file = this.file;
                 if (!file) return;
