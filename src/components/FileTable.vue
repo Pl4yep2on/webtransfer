@@ -51,9 +51,9 @@
 
         <!-- Contenu -->
         <div :class="[
-            'overflow-y-auto h-full',
-            isDragging ? 'border-green-500 border-4 border-dashed transition-all duration-300 ease-in-out' : ''
-        ]" @dragover.prevent @dragenter.prevent="enterDrag" @dragleave.prevent="leaveDrag" @drop.prevent="onDrop">
+            'overflow-y-auto h-full rounded-xl relative',
+            isDragging ? 'border-green-500 border-4 border-dashed transition-all ease-in-out' : ''
+        ]" @drop.prevent="onDrop">
 
             <div v-for="file in files" :key="file.filename"
                 class="flex h-16 items-center hover:bg-NcGray rounded-lg border-b last:border-b-0 border-gray-300"
@@ -95,6 +95,11 @@
                     {{ file.type === 'directory' ? '-' : formatFileSize(file.size) }}
                 </div>
             </div>
+
+            <div class="absolute top-0 left-0 w-full h-full"
+            @dragenter.prevent="onDragEnter" @dragleave.prevent="onDragLeave">
+            </div>
+
         </div>
 
     </div>
@@ -164,10 +169,12 @@ export default {
             const parts = this.breadcrumbParts.slice(0, index + 1);
             return '/' + parts.join('/');
         },
-        enterDrag() {
+        onDragEnter(event) {
+            event.preventDefault();
             this.isDragging = true;
         },
-        leaveDrag() {
+        onDragLeave(event) {
+            event.preventDefault();
             this.isDragging = false;
         },
         getBreadcrumbParts() {
@@ -214,6 +221,7 @@ export default {
         },
         async onDrop(event) {
             event.preventDefault();
+            this.isDragging = false;
 
             try {
                 this.isTransfering = true;
