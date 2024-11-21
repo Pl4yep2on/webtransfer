@@ -53,9 +53,10 @@
 
         <!-- En-tête -->
         <div class="flex h-12 items-center border-b border-gray-300">
-            <div class="w-4/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">Nom</div>
-            <div class="w-1/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">Type</div>
-            <div class="w-1/6 px-4 py-2 text-gray-500 font-semibold">Taille</div>
+            <div class="w-7/12 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">Nom</div>
+            <div class="w-2/12 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">Type</div>
+            <div class="w-2/12 px-4 py-2 text-gray-500 font-semibold">Taille</div>
+            <div class="w-1/12 px-4 py-2 text-gray-500 font-semibold">Options</div>
         </div>
 
         <!-- Contenu -->
@@ -65,7 +66,7 @@
                 @click="handleClickElem(file)">
 
                 <!-- Nom -->
-                <div class="w-4/6 flex items-center px-4 py-2 border-r border-gray-300 cursor-pointer">
+                <div class="w-7/12 flex items-center px-4 py-2 border-r border-gray-300 cursor-pointer">
                     <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
                         <template v-if="file.type === 'directory'">
                             <svg fill="currentColor" viewBox="0 0 24 24" class="text-NcBlue w-10 h-10 ">
@@ -90,34 +91,64 @@
                 </div>
 
                 <!-- Type -->
-                <div class="w-1/6 px-4 py-2 border-r border-gray-300 cursor-pointer">
+                <div class="w-2/12 px-4 py-2 border-r border-gray-300 cursor-pointer">
                     {{ file.type === 'directory' ? 'Dossier' : 'Fichier' }}
                 </div>
 
                 <!-- Taille -->
-                <div class="w-1/6 px-4 py-2 cursor-pointer">
+                <div class="w-2/12 px-4 py-2 cursor-pointer">
                     {{ file.type === 'directory' ? '-' : formatFileSize(file.size) }}
+                </div>
+
+                <!-- Options -->
+                <div class="w-1/12 px-4 py-2 cursor-pointer" @click.stop>
+                    <NcActions>
+                        <NcActionButton @click="deleteElem(file)">
+                            <template #icon>
+                                <Delete :size="20" />
+                            </template>
+                            Supprimer
+                        </NcActionButton>
+                        <NcActionButton @click="editElem(file)">
+                            <template #icon>
+                                <Pencil :size="20" />
+                            </template>
+                            Editer
+                        </NcActionButton>
+                    </NcActions>
                 </div>
             </div>
         </div>
-
+        <EditFileName v-if="!editDialogDisabled" :initialFileName="initialFileName" @update="updateFileName" @close="closeEditDialog">
+        </EditFileName>
     </div>
 </template>
 
 
 
 <script>
+import { ref } from 'vue';
 import { getClient, getRootPath } from '@nextcloud/files/dav';
 import NcBreadcrumbs from '@nextcloud/vue/dist/Components/NcBreadcrumbs.js';
 import NcBreadcrumb from '@nextcloud/vue/dist/Components/NcBreadcrumb.js';
 import Plus from 'vue-material-design-icons/Plus.vue'
+import NcActions from '@nextcloud/vue/dist/Components/NcActions.js';
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js';
+import Delete from 'vue-material-design-icons/Delete.vue';
+import Pencil from 'vue-material-design-icons/Pencil.vue'
+import EditFileName from './EditFileName.vue';
 
 export default {
     name: 'FileTable',
     components: {
         NcBreadcrumbs,
         NcBreadcrumb,
-        Plus
+        Plus,
+        NcActions,
+        NcActionButton,
+        Delete,
+        Pencil,
+        EditFileName
     },
     props: {
         file: {
@@ -134,6 +165,8 @@ export default {
             isAddFilePopupVisible: false,
             newFileName: '',
             isTransfering: false,
+            editDialogDisabled: true,
+            initialFileName: '',
         };
     },
     async mounted() {
@@ -278,7 +311,41 @@ export default {
             } catch (error) {
                 console.error('Erreur lors de la création du dossier :', error);
             }
-        }
+        },
+        async deleteElem(file){
+            const client = getClient()
+            try{
+                let path = this.root_path + this.current_dir + file.basename;
+                await client.deleteFile(path);
+            }
+            catch(error){
+                console.error('Erreur lors de la suppression d\'un element : ', error);
+            }
+            
+            await this.fetchFiles();
+        },
+        async editElem(file) {
+            this.initialFileName = file.basename;
+            this.editDialogDisabled = false;
+        },
+        closeEditDialog() {
+            this.editDialogDisabled = true;
+        },
+        async updateFileName(names){
+            if(names[0] !== names[1]){
+                const client = getClient()
+                try{
+                    const oldName = this.root_path + this.current_dir + names.initialFileName;
+                    const newName = this.root_path + this.current_dir + names.newFileName;
+                    await client.moveFile(oldName,newName);
+                }
+                catch(error){
+                    console.error('Erreur lors du renommage d\'un element : ', error);
+                }
+                
+                await this.fetchFiles();
+            }
+        },
     }
 };
 </script>
