@@ -4,7 +4,7 @@
             <div class="w-4/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">Nom</div>
             <div class="w-2/6 px-4 py-2 text-gray-500 font-semibold">Taille</div>
         </div>
-        <div class="overflow-y-auto">
+        <div v-if="!isLoading && zipContent.length !== 0" class="overflow-y-auto">
             <div v-for="(file, index) in sortedFiles" :key="file.fullPath" class="flex flex-col">
 
                 <div
@@ -66,6 +66,12 @@
 
             </div>
         </div>
+        <div v-if="isLoading" class="flex h-full items-center justify-center">
+            <component :is="Loading" class="text-white w-24 h-24 animate-spin" size="48" />
+        </div>
+        <div v-if="!isLoading && zipContent.length === 0" class="flex h-full items-center justify-center">
+            <span class="text-gray-500">Aucun contenu à afficher</span>
+        </div>
     </div>
 </template>
 
@@ -73,6 +79,8 @@
 import JSZip from 'jszip';
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue';
 import ChevronDownIcon from 'vue-material-design-icons/ChevronDown.vue';
+import Loading from 'vue-material-design-icons/Loading.vue';
+import { ref } from 'vue';
 
 export default {
     name: 'WebContentViewer',
@@ -83,7 +91,9 @@ export default {
             archiveUrl: '',
             token: '',
             ChevronRightIcon,
-            ChevronDownIcon
+            ChevronDownIcon,
+            isLoading: ref(false),
+            Loading,
         };
     },
     props: {
@@ -120,6 +130,7 @@ export default {
         },
     },
     async mounted() {
+        this.isLoading = true;
         await this.loadZipContent();
         const webTransferDiv = document.getElementById('archiveInfos');
         if (webTransferDiv) {
@@ -128,6 +139,7 @@ export default {
         } else {
             console.error('Pas d\'informations pour recuperer l\'archive');
         }
+        this.isLoading = false;
     },
     methods: {
         async loadZipContent() {
