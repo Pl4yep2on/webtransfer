@@ -23,17 +23,24 @@ export default {
     name: "FileNameEditor",
     props: {
         initialFileName: {
-        type: String,
-        required: true,
+            type: String,
+            required: true,
         },
+        isDirectory:{
+            type: Boolean,
+            required: true,
+        }
     },
     data() {
         var newFileName = this.initialFileName;
         var extension = '';
-        let nameSplit = newFileName.split('.');
-        if (nameSplit.length > 1) {
-            extension = nameSplit.pop();
+        if(!this.isDirectory) {
+            let nameSplit = newFileName.split('.');
+            if (nameSplit.length > 1) {
+                extension = nameSplit.pop();
+            }
         }
+        
         return {
             newFileName,
             extension,
@@ -44,11 +51,10 @@ export default {
             if(this.newFileName !== ''){
                 // Séparer le nom de fichier sans l'extension
                 const fileNameWithoutExtension = this.newFileName.slice(0, this.newFileName.lastIndexOf('.'));
-                
                 // Re-construire le nom du fichier avec l'extension d'origine
                 const newFileNameWithOriginalExtension = fileNameWithoutExtension + '.' + this.extension;
 
-                if (this.extension !== '' && this.newFileName !== newFileNameWithOriginalExtension) {
+                if (!this.isDirectory && this.newFileName !== newFileNameWithOriginalExtension) {
                     // L'extension a été modifiée, on rétablit l'extension correcte
                     this.newFileName = newFileNameWithOriginalExtension;
                 }
@@ -61,13 +67,16 @@ export default {
             this.$emit("close");
         },
         onInputChange() {
-            // Vous pouvez ici vérifier si l'extension a été modifiée et la rétablir
-            const fileNameWithoutExtension = this.newFileName.slice(0, this.newFileName.lastIndexOf('.'));
-            const newFileNameWithOriginalExtension = fileNameWithoutExtension + '.' + this.extension;
+            if (!this.isDirectory) {
+                const fileNameWithoutExtension = this.newFileName.slice(0, this.newFileName.lastIndexOf('.'));
+                const newFileNameWithOriginalExtension = fileNameWithoutExtension + '.' + this.extension;
 
-            // Si l'extension est différente de celle d'origine, on la rétablit
-            if (this.extension !== '' && this.newFileName !== newFileNameWithOriginalExtension) {
-                this.newFileName = newFileNameWithOriginalExtension;
+                // Si l'extension est différente de celle d'origine, on la rétablit
+                if (this.extension !== '' && this.newFileName !== newFileNameWithOriginalExtension) {
+                    // Vous pouvez ici vérifier si l'extension a été modifiée et la rétablir
+                    
+                    this.newFileName = newFileNameWithOriginalExtension;
+                }
             }
         },
     },
