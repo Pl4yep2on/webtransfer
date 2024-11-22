@@ -115,7 +115,7 @@
                 </div>
             </div>
         </div>
-        <EditFileName v-if="!editDialogDisabled" :initialFileName="initialFileName" @update="updateFileName" @close="closeEditDialog">
+        <EditFileName v-if="!editDialogDisabled" :initialFileName="initialFileName" :isDirectory="isDirectory" @update="updateFileName" @close="closeEditDialog">
         </EditFileName>
     </div>
 </template>
@@ -163,7 +163,8 @@ export default {
             isTransfering: false,
             isDragging: false,
             editDialogDisabled: true,
-            initialFileName: '',
+            initialFileName: '', // Nom originel du fichier/dossier edite
+            isDirectory: false, // Si l'element edite est un dossier ou non
         };
     },
     async mounted() {
@@ -335,20 +336,43 @@ export default {
             
             await this.fetchFiles();
         },
+        /**
+         * Change les props pour le composant EditFileName
+         * @param file le ficher/dossier dont on veut editer le nom
+         */
         async editElem(file) {
+            if(file.type === 'file'){
+                this.isDirectory = false;
+            }
+            else{
+                this.isDirectory = true;
+            }
             this.initialFileName = file.basename;
             this.editDialogDisabled = false;
         },
+        /**
+         * Ferme la fenetre d'edition du nom du fichier/dossier
+         */
         closeEditDialog() {
             this.editDialogDisabled = true;
         },
+        /**
+         * Change le nom du fichier sur le serveur Cloud via un client WebDAV
+         * @param names Contient un initialFileName et un newFileName
+         */
         async updateFileName(names){
             if(names.initialFileName !== names.newFileName){
                 const client = getClient()
                 try{
                     const oldName = this.root_path + this.current_dir + names.initialFileName;
                     const newName = this.root_path + this.current_dir + names.newFileName;
-                    await client.moveFile(oldName,newName);
+                    let alreadyExists = await this.elemtAlreadyExists(newName);
+                    if(!alreadyExists) {
+                        await client.moveFile(oldName,newName);
+                    }
+                    else{
+                        alert(`Vous ne pouvez pas renommez le fichier/dossier : ${names.newFileName} car un autre fichier/dossier porte deja le meme nom.`);
+                    }
                 }
                 catch(error){
                     console.error('Erreur lors du renommage d\'un element : ', error);
@@ -357,6 +381,12 @@ export default {
                 await this.fetchFiles();
             }
         },
+        async elemtAlreadyExists(name){
+            const client = getClient();
+            let exists = await client.exists(name);
+
+            return exists;
+        }
     }
 };
 </script>
