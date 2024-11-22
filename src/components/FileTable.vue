@@ -16,7 +16,7 @@
                             <span>Nouveau</span>
                         </button>
                         <span v-else>
-                            <NcProgressBar :value="transferProgress" size="medium" :color="transferStatus" />
+                            <ProgressBar :value="transferProgress" :color="transferStatus" />
                         </span>
                     </div>
                 </template>
@@ -133,7 +133,8 @@ import NcActions from '@nextcloud/vue/dist/Components/NcActions.js';
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js';
 import Delete from 'vue-material-design-icons/Delete.vue';
 import Pencil from 'vue-material-design-icons/Pencil.vue'
-import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar.js'
+//import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar.js'
+import ProgressBar from './ProgressBar.vue';
 import EditFileName from './EditFileName.vue';
 
 export default {
@@ -144,7 +145,7 @@ export default {
         Plus,
         NcActions,
         NcActionButton,
-        NcProgressBar,
+        ProgressBar,
         Delete,
         Pencil,
         EditFileName,
@@ -169,7 +170,7 @@ export default {
             initialFileName: '', // Nom originel du fichier/dossier edite
             isDirectory: false, // Si l'element edite est un dossier ou non
             transferProgress: 0,
-            transferStatus: 'green',
+            transferStatus: 'bg-blue-500',
         };
     },
     async mounted() {
@@ -297,7 +298,7 @@ export default {
 
             } catch (error) {
                 console.error('Erreur lors du drop :', error);
-                this.transferStatus = 'red';
+                this.transferStatus = 'bg-red-500';
                 this.isTransfering = false;
             }
         },
