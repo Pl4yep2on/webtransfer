@@ -4,7 +4,7 @@
             <div class="w-4/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">Nom</div>
             <div class="w-2/6 px-4 py-2 text-gray-500 font-semibold">Taille</div>
         </div>
-        <div v-if="!isLoading && zipContent.length !== 0" class="overflow-y-auto">
+        <div v-if="!isLoading && zipContent.length !== 0" class="overflow-y-auto h-full">
             <div v-for="(file, index) in sortedFiles" :key="file.fullPath" class="flex flex-col">
 
                 <div
