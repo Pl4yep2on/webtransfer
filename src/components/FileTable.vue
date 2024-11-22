@@ -290,8 +290,17 @@ export default {
         async moveFilesOfFolder(folder, parentPath) {
 
             await this.createFolder(folder, parentPath);
+            const checkChildrenInChildren = (folder) => {
+                let total = folder.children.length;
+                for (const child of folder.children) {
+                    if (child.isDirectory) {
+                        total += checkChildrenInChildren(child);
+                    }
+                }
+                return total;
+            };
 
-            const progressSteps = 100 / folder.children.length;
+            const progressSteps = Math.floor(100 / checkChildrenInChildren(folder));
 
             for (const child of folder.children) {
                 this.transferProgress += progressSteps;
