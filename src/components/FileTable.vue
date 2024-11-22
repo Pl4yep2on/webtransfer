@@ -289,10 +289,10 @@ export default {
             }
         },
         async moveFilesOfFolder(folder, parentPath) {
-
             await this.createFolder(folder, parentPath);
 
-            const progressSteps = 100 / folder.children.length;
+            const fileProgress = 100 / folder.children.length
+            const progressSteps = Math.floor(fileProgress);
 
             for (const child of folder.children) {
                 this.transferProgress += progressSteps;
@@ -311,7 +311,7 @@ export default {
                 const client = getClient();
                 // Assurez-vous que le chemin parent est correctement formaté
                 
-                const fullPath = `${this.root_path}${this.current_dir}${parentPath}${file.name}`;
+                const fullPath = `${this.root_path}${this.current_dir}${parentPath}/${file.name}`;
 
                 if (ArrayBuffer.isView(file.content)) {
                     file.content = Buffer.from(file.content);
