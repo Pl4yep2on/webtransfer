@@ -343,7 +343,7 @@ export default {
             this.editDialogDisabled = true;
         },
         async updateFileName(names){
-            if(names[0] !== names[1]){
+            if(names.initialFileName !== names.newFileName){
                 const client = getClient()
                 try{
                     const oldName = this.root_path + this.current_dir + names.initialFileName;
