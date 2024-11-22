@@ -11,11 +11,14 @@
                 </NcBreadcrumb>
                 <template #actions>
                     <div class="flex items-center ml-2">
-                        <button @click="toggleAddFilePopup"
+                        <button v-if="!isTransfering" @click="toggleAddFilePopup"
                             class="flex items-center space-x-2 bg-blue-100 text-blue-600 font-medium px-4 py-2 rounded-md hover:bg-blue-200 transition">
                             <Plus :size="20" />
                             <span>Nouveau</span>
                         </button>
+                        <span v-else>
+                            <NcProgressBar :value="transferProgress" size="medium" :color="transferStatus" />
+                        </span>
                     </div>
                 </template>
             </NcBreadcrumbs>
@@ -123,7 +126,6 @@
 
 
 <script>
-import { ref } from 'vue';
 import { getClient, getRootPath } from '@nextcloud/files/dav';
 import NcBreadcrumbs from '@nextcloud/vue/dist/Components/NcBreadcrumbs.js';
 import NcBreadcrumb from '@nextcloud/vue/dist/Components/NcBreadcrumb.js';
@@ -132,6 +134,7 @@ import NcActions from '@nextcloud/vue/dist/Components/NcActions.js';
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js';
 import Delete from 'vue-material-design-icons/Delete.vue';
 import Pencil from 'vue-material-design-icons/Pencil.vue'
+import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar.js'
 import EditFileName from './EditFileName.vue';
 
 export default {
@@ -142,6 +145,7 @@ export default {
         Plus,
         NcActions,
         NcActionButton,
+        NcProgressBar,
         Delete,
         Pencil,
         EditFileName
@@ -165,6 +169,8 @@ export default {
             editDialogDisabled: true,
             initialFileName: '', // Nom originel du fichier/dossier edite
             isDirectory: false, // Si l'element edite est un dossier ou non
+            transferProgress: 0,
+            transferStatus: 'green',
         };
     },
     async mounted() {
@@ -264,16 +270,21 @@ export default {
                 if (file.isDirectory) {
                     await this.moveFilesOfFolder(file,'');
                 } else {
+                    this.transferProgress = 25;
                     if (file.content && typeof file.content.arrayBuffer === 'function') {
                         file.content = await file.content.arrayBuffer();
                     }
+                    this.transferProgress = 50;
                     await this.moveFileToTarget(file, '');
+                    this.transferProgress = 100;      
                 }
 
                 this.isTransfering = false;
+                this.transferProgress = 0;
 
             } catch (error) {
                 console.error('Erreur lors du drop :', error);
+                this.transferStatus = 'red';
                 this.isTransfering = false;
             }
         },
@@ -281,7 +292,10 @@ export default {
 
             await this.createFolder(folder, parentPath);
 
+            const progressSteps = 100 / folder.children.length;
+
             for (const child of folder.children) {
+                this.transferProgress += progressSteps;
                 if (child.isDirectory) {
                     await this.moveFilesOfFolder(child, parentPath + child.parentPath + '/');
                 } else {
