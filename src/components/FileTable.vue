@@ -1,5 +1,4 @@
-<template>
-
+<template> 
     <div class="flex flex-col h-full w-full border">
         <!-- Breadcrumb -->
         <div class="flex flex-row mt-1 ml-3 items-start container">
@@ -148,7 +147,7 @@ export default {
         NcProgressBar,
         Delete,
         Pencil,
-        EditFileName
+        EditFileName,
     },
     props: {
         file: {
@@ -230,16 +229,30 @@ export default {
         },
         async createNewFile() {
             if (!this.newFileName) return;
-            try {
-                const client = getClient();
-                const filePath = `${this.root_path}${this.current_dir}/${this.newFileName}`;
-                await client.createDirectory(filePath, '');
-                this.newFileName = '';
-                this.isAddFilePopupVisible = false;
-                await this.fetchFiles();
-            } catch (error) {
-                console.error('Erreur lors de la création du fichier :', error);
-            }
+            
+                try {
+                    const client = getClient();
+                    let filePath = '';
+                    console.log(this.newFileName)
+                    if(this.current_dir[this.current_dir.length - 1] === '/') {
+                        filePath = `${this.root_path}${this.current_dir}${this.newFileName}`;
+                    }
+                    else{
+                        filePath = `${this.root_path}${this.current_dir}/${this.newFileName}`;
+                    }
+                    const alreadyExists = await this.elemtAlreadyExists(filePath);
+                    if (!alreadyExists) {
+                        await client.createDirectory(filePath, '');
+                        this.newFileName = '';
+                        this.isAddFilePopupVisible = false;
+                        await this.fetchFiles();
+                    }
+                    else{
+                        alert(`Vous ne pouvez pas creer le dossier : ${this.newFileName} car un autre dossier porte deja le meme nom.`);
+                    }
+                } catch (error) {
+                    console.error('Erreur lors de la création du fichier :', error);
+                }
         },
         toggleAddFilePopup() {
             this.isAddFilePopupVisible = !this.isAddFilePopupVisible;
@@ -290,9 +303,17 @@ export default {
         },
         async moveFilesOfFolder(folder, parentPath) {
             await this.createFolder(folder, parentPath);
+            const checkChildrenInChildren = (folder) => {
+                let total = folder.children.length;
+                for (const child of folder.children) {
+                    if (child.isDirectory) {
+                        total += checkChildrenInChildren(child);
+                    }
+                }
+                return total;
+            };
 
-            const fileProgress = 100 / folder.children.length
-            const progressSteps = Math.floor(fileProgress);
+            const progressSteps = Math.floor(100 / checkChildrenInChildren(folder));
 
             for (const child of folder.children) {
                 this.transferProgress += progressSteps;
@@ -311,17 +332,29 @@ export default {
                 const client = getClient();
                 // Assurez-vous que le chemin parent est correctement formaté
                 
-                const fullPath = `${this.root_path}${this.current_dir}${parentPath}/${file.name}`;
+                let fullPath = '';
+                if(parentPath[parentPath.length - 1] === '/') {
+                    fullPath = `${this.root_path}${this.current_dir}${parentPath}${file.name}`;
+                }
+                else{
+                    fullPath = `${this.root_path}${this.current_dir}${parentPath}/${file.name}`;
+                }
 
                 if (ArrayBuffer.isView(file.content)) {
                     file.content = Buffer.from(file.content);
                 }
+                
+                const alreadyExists = await this.elemtAlreadyExists(fullPath);
+                if(!alreadyExists) {
+                    // Évitez les chemins incorrects en utilisant `path.normalize` si disponible
+                    await client.putFileContents(fullPath, file.content);
 
-                // Évitez les chemins incorrects en utilisant `path.normalize` si disponible
-                await client.putFileContents(fullPath, file.content);
-
-                // Recharge les fichiers après l'opération
-                await this.fetchFiles();
+                    // Recharge les fichiers après l'opération
+                    await this.fetchFiles();
+                }
+                else{
+                    alert(`Vous ne pouvez pas deposer le fichier : ${file.name} car un autre fichier porte deja le meme nom.`);
+                }
             } catch (error) {
                 console.error('Erreur lors du déplacement du fichier:', error);
             }
@@ -329,11 +362,22 @@ export default {
         async createFolder(folder, parentPath) {
             try {
                 const client = getClient();
-                
-                const fullPath = `${this.root_path}${this.current_dir}${parentPath}/${folder.name}/`;
+                let fullPath = '';
+                if(parentPath[parentPath.length - 1] === '/') {
+                    fullPath = `${this.root_path}${this.current_dir}${parentPath}${folder.name}`;
+                }
+                else{
+                    fullPath = `${this.root_path}${this.current_dir}${parentPath}/${folder.name}`;
+                }
 
-                await client.createDirectory(fullPath);
-                await this.fetchFiles();
+                const alreadyExists = await this.elemtAlreadyExists(fullPath);
+                if(!alreadyExists) {
+                    await client.createDirectory(fullPath);
+                    await this.fetchFiles();
+                }
+                else{
+                    alert(`Vous ne pouvez pas deposer le dossier : ${folder.name} car un autre dossier porte deja le meme nom.`);
+                }
             } catch (error) {
                 console.error('Erreur lors de la création du dossier :', error);
             }
@@ -395,9 +439,13 @@ export default {
                 await this.fetchFiles();
             }
         },
-        async elemtAlreadyExists(name){
+        /**
+         * Check si un fichier ou un dossier existe deja sur le serveur
+         * @param path le chemin du fichier/dossier
+         */
+        async elemtAlreadyExists(path){
             const client = getClient();
-            let exists = await client.exists(name);
+            let exists = await client.exists(path);
 
             return exists;
         }
