@@ -17,7 +17,6 @@
       value: {
         type: Number,
         required: true,
-        validator: (v) => v >= 0 && v <= 100,
       },
       label: {
         type: String,
@@ -26,6 +25,11 @@
       color: {
         type: String,
         default: "bg-blue-500",
+      },
+    },
+    computed: {
+      clampedValue() {
+        return Math.max(0, Math.min(this.value, 100));
       },
     },
   };
