@@ -279,6 +279,7 @@ export default {
                 this.isDragging = false;
                 this.isTransfering = true;
                 const file = this.file;
+                console.log(file);
                 if (!file) return;
 
                 if (file.isDirectory) {
@@ -303,7 +304,7 @@ export default {
             }
         },
         async moveFilesOfFolder(folder, parentPath) {
-            await this.createFolder(folder, parentPath);
+            await this.createFolder(folder, parentPath + '/');
             const checkChildrenInChildren = (folder) => {
                 let total = folder.children.length;
                 for (const child of folder.children) {
@@ -319,12 +320,12 @@ export default {
             for (const child of folder.children) {
                 this.transferProgress += progressSteps;
                 if (child.isDirectory) {
-                    await this.moveFilesOfFolder(child, parentPath + child.parentPath + '/');
+                    await this.moveFilesOfFolder(child, parentPath + '/' + child.parentPath + '/');
                 } else {
                     if (child.content && typeof child.content.arrayBuffer === 'function') {
                         child.content = await child.content.arrayBuffer();
                     }
-                    await this.moveFileToTarget(child, parentPath + child.parentPath + '/');
+                    await this.moveFileToTarget(child, parentPath + '/' + child.parentPath + '/');
                 }
             }
         },
@@ -334,12 +335,7 @@ export default {
                 // Assurez-vous que le chemin parent est correctement formaté
                 
                 let fullPath = '';
-                if(parentPath[parentPath.length - 1] === '/') {
-                    fullPath = `${this.root_path}${this.current_dir}${parentPath}${file.name}`;
-                }
-                else{
-                    fullPath = `${this.root_path}${this.current_dir}${parentPath}/${file.name}`;
-                }
+                fullPath = `${this.root_path}${this.current_dir}${parentPath}${file.name}`;
 
                 if (ArrayBuffer.isView(file.content)) {
                     file.content = Buffer.from(file.content);
@@ -364,12 +360,7 @@ export default {
             try {
                 const client = getClient();
                 let fullPath = '';
-                if(parentPath[parentPath.length - 1] === '/') {
-                    fullPath = `${this.root_path}${this.current_dir}${parentPath}${folder.name}`;
-                }
-                else{
-                    fullPath = `${this.root_path}${this.current_dir}${parentPath}/${folder.name}`;
-                }
+                fullPath = `${this.root_path}${this.current_dir}${parentPath}${folder.name}`;
 
                 const alreadyExists = await this.elemtAlreadyExists(fullPath);
                 if(!alreadyExists) {
@@ -386,7 +377,7 @@ export default {
         async deleteElem(file){
             const client = getClient()
             try{
-                let path = this.root_path + this.current_dir + file.basename;
+                let path = this.root_path + this.current_dir + "/" + file.basename;
                 await client.deleteFile(path);
             }
             catch(error){
