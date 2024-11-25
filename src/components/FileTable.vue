@@ -15,9 +15,9 @@
                             <Plus :size="20" />
                             <span>Nouveau</span>
                         </button>
-                        <span v-else>
+                        <div v-else>
                             <ProgressBar :value="transferProgress" :color="transferStatus" />
-                        </span>
+                        </div>
                     </div>
                 </template>
             </NcBreadcrumbs>
@@ -117,8 +117,11 @@
                 </div>
             </div>
         </div>
+
         <EditFileName v-if="!editDialogDisabled" :initialFileName="initialFileName" :isDirectory="isDirectory" @update="updateFileName" @close="closeEditDialog">
         </EditFileName>
+        <FileExistsDialog v-if="!fileExistDialogDisabled" :fileName="initialFileName" @overwrite="" @rename="" @cancel="fileExistDialogDisabled = true">
+        </FileExistsDialog>
     </div>
 </template>
 
@@ -126,16 +129,22 @@
 
 <script>
 import { getClient, getRootPath } from '@nextcloud/files/dav';
+
+// NextCloud Components
 import NcBreadcrumbs from '@nextcloud/vue/dist/Components/NcBreadcrumbs.js';
 import NcBreadcrumb from '@nextcloud/vue/dist/Components/NcBreadcrumb.js';
-import Plus from 'vue-material-design-icons/Plus.vue'
 import NcActions from '@nextcloud/vue/dist/Components/NcActions.js';
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js';
-import Delete from 'vue-material-design-icons/Delete.vue';
-import Pencil from 'vue-material-design-icons/Pencil.vue'
-//import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar.js'
+
+// Custom components
 import ProgressBar from './ProgressBar.vue';
 import EditFileName from './EditFileName.vue';
+import FileExistsDialog from './FileExistsDialog.vue';
+
+// Icons
+import Plus from 'vue-material-design-icons/Plus.vue'
+import Delete from 'vue-material-design-icons/Delete.vue';
+import Pencil from 'vue-material-design-icons/Pencil.vue'
 
 export default {
     name: 'FileTable',
@@ -149,6 +158,7 @@ export default {
         Delete,
         Pencil,
         EditFileName,
+        FileExistsDialog
     },
     props: {
         file: {
@@ -167,8 +177,9 @@ export default {
             isTransfering: false,
             isDragging: false,
             editDialogDisabled: true,
-            initialFileName: '', // Nom originel du fichier/dossier edite
-            isDirectory: false, // Si l'element edite est un dossier ou non
+            fileExistDialogDisabled:true,
+            initialFileName: '', // Nom originel du fichier/dossier a edite
+            isDirectory: false, // Si l'element a edite est un dossier ou non
             transferProgress: 0,
             transferStatus: 'bg-blue-500',
         };
@@ -350,7 +361,11 @@ export default {
                     await this.fetchFiles();
                 }
                 else{
-                    alert(`Vous ne pouvez pas deposer le fichier : ${file.name} car un autre fichier porte deja le meme nom.`);
+                    this.initialFileName = file.name;
+                    this.fileExistDialogDisabled = false;
+                    while(!this.fileExistDialogDisabled) {
+                        await this.sleep(50);
+                    }
                 }
             } catch (error) {
                 console.error('Erreur lors du déplacement du fichier:', error);
@@ -368,7 +383,11 @@ export default {
                     await this.fetchFiles();
                 }
                 else{
-                    alert(`Vous ne pouvez pas deposer le dossier : ${folder.name} car un autre dossier porte deja le meme nom.`);
+                    this.initialFileName = folder.name;
+                    this.fileExistDialogDisabled = false;
+                    while(!this.fileExistDialogDisabled) {
+                        await this.sleep();
+                    }
                 }
             } catch (error) {
                 console.error('Erreur lors de la création du dossier :', error);
@@ -427,7 +446,6 @@ export default {
                 catch(error){
                     console.error('Erreur lors du renommage d\'un element : ', error);
                 }
-                
                 await this.fetchFiles();
             }
         },
@@ -440,6 +458,9 @@ export default {
             let exists = await client.exists(path);
 
             return exists;
+        },
+        async sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
     }
 };
