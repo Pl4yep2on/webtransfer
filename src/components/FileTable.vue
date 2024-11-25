@@ -120,7 +120,7 @@
 
         <EditFileName v-if="!editDialogDisabled" :initialFileName="initialFileName" :isDirectory="isDirectory" @update="updateFileName" @close="closeEditDialog">
         </EditFileName>
-        <FileExistsDialog v-if="!fileExistDialogDisabled" :fileName="initialFileName" @overwrite="" @rename="" @cancel="fileExistDialogDisabled = true">
+        <FileExistsDialog v-if="!fileExistDialogDisabled" :fileName="initialFileName" @overwrite="" @rename="" @cancel="closeFileExistsDialog">
         </FileExistsDialog>
     </div>
 </template>
@@ -192,7 +192,7 @@ export default {
         async fetchFiles() {
             try {
                 const client = getClient();
-                const directoryItems = await client.getDirectoryContents(this.root_path + this.current_dir); // Remplacez "admin" par le nom de l'utilisateur courant
+                const directoryItems = await client.getDirectoryContents(this.root_path + this.current_dir);
 
                 this.files = directoryItems.map(file => ({
                     basename: file.basename,
@@ -424,6 +424,9 @@ export default {
          */
         closeEditDialog() {
             this.editDialogDisabled = true;
+        },
+        closeFileExistsDialog() {
+            this.fileExistDialogDisabled = true;
         },
         /**
          * Change le nom du fichier sur le serveur Cloud via un client WebDAV

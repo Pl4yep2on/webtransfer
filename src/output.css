@@ -741,6 +741,14 @@ video {
   flex-direction: column;
 }
 
+.content-center {
+  align-content: center;
+}
+
+.content-evenly {
+  align-content: space-evenly;
+}
+
 .items-start {
   align-items: flex-start;
 }

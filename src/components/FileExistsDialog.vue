@@ -1,17 +1,17 @@
 <template>
     <div class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50">
-        <div v-if="!displayRename" class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
+        <div v-if="!displayRename && !displayOverwrite" class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
             <h2 class="text-lg font-semibold mb-4">Le fichier existe déjà</h2>
             <p>Le fichier "{{ fileName }}" existe déjà. Que voulez-vous faire ?</p>
             <div class="flex justify-end mt-4 space-x-2">
-                <button @click="onOverwrite">Écraser</button>
+                <button @click="toggleOverwrite">Écraser</button>
                 <button @click="toggleRename">Renommer</button>
                 <button @click="onCancel">Annuler</button>
             </div>
         </div>
 
         <!-- Renommer le fichier -->
-        <div v-else class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
+        <div v-if="displayRename" class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
             <h2 class="text-lg font-semibold mb-4">Modifier le nom du fichier</h2>
             <input
                 type="text"
@@ -26,6 +26,18 @@
                 <button @click="toggleRename" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">Annuler</button>
             </div>
         </div>
+
+        <!-- Appliquer l'ecrasement a tous -->
+        <div v-if="displayOverwrite" class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
+            <div class="flex items-center content-evenly">
+                <input type="checkbox" v-model="forAll" />
+                <p>Appliquer à tous</p>
+            </div>
+            <div class="flex justify-end mt-4 space-x-2">
+                <button @click="onOverwrite" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">Valider</button>
+                <button @click="toggleOverwrite" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">Annuler</button>
+            </div>
+        </div>       
     </div>
 </template>
 
@@ -50,6 +62,8 @@ export default {
         
         return {
             displayRename: false,
+            displayOverwrite: false,
+            forAll: false,
             oldFileName,
             newFileName,
             extension,
@@ -57,14 +71,17 @@ export default {
     },
     methods: {
         onOverwrite() {
-            this.$emit('overwrite', {forAll : false});
+            this.$emit('overwrite', {forAll : this.forAll});
         },
         onCancel() {
             this.$emit('cancel');
         },
         toggleRename() {
             this.displayRename = !this.displayRename;
-        },  
+        },
+        toggleOverwrite(){
+            this.displayOverwrite = !this.displayOverwrite;
+        },
         save() {
             if(this.newFileName !== ''){
                 // Séparer le nom de fichier sans l'extension
@@ -77,8 +94,7 @@ export default {
                     this.newFileName = newFileNameWithOriginalExtension;
                 }
 
-                this.$emit("rename", { initialFileName: this.initialFileName, newFileName: this.newFileName });
-                this.onCancel();
+                this.$emit("rename", { oldFileName: this.oldFileName, newFileName: this.newFileName });
             }
         },
         onInputChange() {
