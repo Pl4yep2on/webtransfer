@@ -29,15 +29,17 @@
 
         <!-- Appliquer l'ecrasement a tous -->
         <div v-if="displayOverwrite" class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
+            <h2 class="text-lg font-semibold mb-4">Vous allez ecraser le fichier/dossier</h2>
             <div class="flex items-center content-evenly">
                 <input type="checkbox" v-model="forAll" />
-                <p>Appliquer à tous</p>
+                <p>Appliquer à tous*</p>
             </div>
+            <p class="text-xs text-gray-400">* ecrasera tous les fichiers qui ont le même nom sur votre dépôt</p>
             <div class="flex justify-end mt-4 space-x-2">
                 <button @click="onOverwrite" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">Valider</button>
                 <button @click="toggleOverwrite" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">Annuler</button>
             </div>
-        </div>       
+        </div>
     </div>
 </template>
 

@@ -120,7 +120,7 @@
 
         <EditFileName v-if="!editDialogDisabled" :initialFileName="initialFileName" :isDirectory="isDirectory" @update="updateFileName" @close="closeEditDialog">
         </EditFileName>
-        <FileExistsDialog v-if="!fileExistDialogDisabled" :fileName="initialFileName" @overwrite="" @rename="" @cancel="closeFileExistsDialog">
+        <FileExistsDialog v-if="!fileExistDialogDisabled" :fileName="initialFileName" @overwrite="setOverwrite" @rename="" @cancel="cancelDrop">
         </FileExistsDialog>
     </div>
 </template>
@@ -182,6 +182,9 @@ export default {
             isDirectory: false, // Si l'element a edite est un dossier ou non
             transferProgress: 0,
             transferStatus: 'bg-blue-500',
+            overwrite: false,
+            applyToAll: false,
+            cancelOperation: false,
         };
     },
     async mounted() {
@@ -307,12 +310,15 @@ export default {
 
                 this.isTransfering = false;
                 this.transferProgress = 0;
+                this.cancelOperation = false;
 
             } catch (error) {
                 console.error('Erreur lors du drop :', error);
                 this.transferStatus = 'bg-red-500';
                 this.isTransfering = false;
             }
+            this.overwrite = false;
+            this.applyToAll = false;
         },
         async moveFilesOfFolder(folder, parentPath) {
             await this.createFolder(folder, parentPath + '/');
@@ -329,14 +335,16 @@ export default {
             const progressSteps = Math.floor(100 / checkChildrenInChildren(folder));
 
             for (const child of folder.children) {
-                this.transferProgress += progressSteps;
-                if (child.isDirectory) {
-                    await this.moveFilesOfFolder(child, parentPath + '/' + child.parentPath + '/');
-                } else {
-                    if (child.content && typeof child.content.arrayBuffer === 'function') {
-                        child.content = await child.content.arrayBuffer();
+                if(!this.cancelOperation){
+                    this.transferProgress += progressSteps;
+                    if (child.isDirectory) {
+                        await this.moveFilesOfFolder(child, parentPath + '/' + child.parentPath + '/');
+                    } else {
+                        if (child.content && typeof child.content.arrayBuffer === 'function') {
+                            child.content = await child.content.arrayBuffer();
+                        }
+                        await this.moveFileToTarget(child, parentPath + '/' + child.parentPath + '/');
                     }
-                    await this.moveFileToTarget(child, parentPath + '/' + child.parentPath + '/');
                 }
             }
         },
@@ -353,9 +361,13 @@ export default {
                 }
                 
                 const alreadyExists = await this.elemtAlreadyExists(fullPath);
-                if(!alreadyExists) {
+                if(!alreadyExists || this.overwrite) {
                     // Évitez les chemins incorrects en utilisant `path.normalize` si disponible
                     await client.putFileContents(fullPath, file.content);
+
+                    if (this.overwrite && !this.applyToAll) {
+                        this.overwrite = false;
+                    }
 
                     // Recharge les fichiers après l'opération
                     await this.fetchFiles();
@@ -365,6 +377,9 @@ export default {
                     this.fileExistDialogDisabled = false;
                     while(!this.fileExistDialogDisabled) {
                         await this.sleep(50);
+                    }
+                    if(!this.cancelOperation){
+                        await this.moveFileToTarget(file,parentPath);
                     }
                 }
             } catch (error) {
@@ -382,11 +397,14 @@ export default {
                     await client.createDirectory(fullPath);
                     await this.fetchFiles();
                 }
-                else{
+                else if(!this.applyToAll){
                     this.initialFileName = folder.name;
                     this.fileExistDialogDisabled = false;
                     while(!this.fileExistDialogDisabled) {
                         await this.sleep();
+                    }
+                    if(this.overwrite && !this.applyToAll) {
+                        this.overwrite = false;
                     }
                 }
             } catch (error) {
@@ -452,6 +470,11 @@ export default {
                 await this.fetchFiles();
             }
         },
+        setOverwrite(options) {
+            this.overwrite = true;
+            this.applyToAll = options.forAll;
+            this.fileExistDialogDisabled = true;
+        },
         /**
          * Check si un fichier ou un dossier existe deja sur le serveur
          * @param path le chemin du fichier/dossier
@@ -461,6 +484,10 @@ export default {
             let exists = await client.exists(path);
 
             return exists;
+        },
+        cancelDrop(){
+            this.cancelOperation = true;
+            this.closeFileExistsDialog();
         },
         async sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
