@@ -5,7 +5,7 @@
             <p>Le fichier "{{ fileName }}" existe déjà. Que voulez-vous faire ?</p>
             <div class="flex justify-end mt-4 space-x-2">
                 <button @click="toggleOverwrite">Écraser</button>
-                <button @click="toggleRename">Renommer</button>
+                <button v-if="!isDirectory" @click="toggleRename">Renommer</button>
                 <button @click="onCancel">Annuler</button>
             </div>
         </div>
@@ -49,10 +49,13 @@ export default {
         fileName: {
             type: String,
             required: true
+        },
+        isDirectory:{
+            type: Boolean,
+            required: true,
         }
     },
     data() {
-        var oldFileName = this.fileName;
         var newFileName = this.fileName;
         var extension = '';
         if(!this.isDirectory) {
@@ -66,7 +69,6 @@ export default {
             displayRename: false,
             displayOverwrite: false,
             forAll: false,
-            oldFileName,
             newFileName,
             extension,
         }
@@ -96,7 +98,7 @@ export default {
                     this.newFileName = newFileNameWithOriginalExtension;
                 }
 
-                this.$emit("rename", { oldFileName: this.oldFileName, newFileName: this.newFileName });
+                this.$emit("rename", { newFileName: this.newFileName });
             }
         },
         onInputChange() {

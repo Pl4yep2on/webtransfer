@@ -128,7 +128,7 @@
         <EditFileName v-if="!editDialogDisabled" :initialFileName="initialFileName" :isDirectory="isDirectory"
             @update="updateFileName" @close="closeEditDialog">
         </EditFileName>
-        <FileExistsDialog v-if="!fileExistDialogDisabled" :fileName="initialFileName" @overwrite="setOverwrite" @rename="" @cancel="cancelDrop">
+        <FileExistsDialog v-if="!fileExistDialogDisabled" :fileName="initialFileName" :isDirectory="isDirectory" @overwrite="setOverwrite" @rename="setRename" @cancel="cancelDrop">
         </FileExistsDialog>
     </div>
 </template>
@@ -196,6 +196,8 @@ export default {
             overwrite: false,
             applyToAll: false,
             cancelOperation: false,
+            rename: false,
+            newElemName: '',
         };
     },
     async mounted() {
@@ -259,7 +261,6 @@ export default {
             try {
                 const client = getClient();
                 let filePath = '';
-                console.log(this.newFileName)
                 if (this.current_dir[this.current_dir.length - 1] === '/') {
                     filePath = `${this.root_path}${this.current_dir}${this.newFileName}`;
                 }
@@ -349,6 +350,8 @@ export default {
             }
             this.overwrite = false;
             this.applyToAll = false;
+            this.rename = false;
+            this.newElemName = '';
         },
         async moveFilesOfFolder(folder, parentPath) {
             await this.createFolder(folder, parentPath + '/');
@@ -378,13 +381,22 @@ export default {
                 }
             }
         },
-        async moveFileToTarget(file, parentPath) {
+        async moveFileToTarget(file, parentPath, newName = null) {
+            this.isDirectory = false;
             try {
                 const client = getClient();
                 // Assurez-vous que le chemin parent est correctement formaté
 
                 let fullPath = '';
-                fullPath = `${this.root_path}${this.current_dir}${parentPath}${file.name}`;
+                if(!this.rename) {
+                    fullPath = `${this.root_path}${this.current_dir}${parentPath}${file.name}`;
+                }
+                else if (this.rename && newName){
+                    fullPath = `${this.root_path}${this.current_dir}${parentPath}${newName}`;
+                }
+                else {
+                    return null;
+                }
 
                 if (ArrayBuffer.isView(file.content)) {
                     file.content = Buffer.from(file.content);
@@ -409,7 +421,13 @@ export default {
                         await this.sleep(50);
                     }
                     if(!this.cancelOperation){
-                        await this.moveFileToTarget(file,parentPath);
+                        if(this.rename) {
+                            await this.moveFileToTarget(file, parentPath, this.newElemName);
+                            this.rename = false;
+                        }
+                        else{
+                            await this.moveFileToTarget(file,parentPath);
+                        }
                     }
                 }
             } catch (error) {
@@ -417,6 +435,7 @@ export default {
             }
         },
         async createFolder(folder, parentPath) {
+            this.isDirectory = true;
             try {
                 const client = getClient();
                 let fullPath = '';
@@ -503,6 +522,11 @@ export default {
         setOverwrite(options) {
             this.overwrite = true;
             this.applyToAll = options.forAll;
+            this.fileExistDialogDisabled = true;
+        },
+        setRename(options) {
+            this.rename = true;
+            this.newElemName = options.newFileName;
             this.fileExistDialogDisabled = true;
         },
         /**
