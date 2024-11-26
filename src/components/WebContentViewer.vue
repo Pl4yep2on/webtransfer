@@ -5,7 +5,7 @@
             <div class="w-2/6 px-4 py-2 text-gray-500 font-semibold">Taille</div>
         </div>
 
-        <div class="flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
+        <div class="flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300" v-if="!isLoading"
             draggable="true" @dragstart="dragZip()">
             <template>
                 <div class="flex items-center justify-center cursor-pointer">

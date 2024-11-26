@@ -137,9 +137,6 @@
 
 
 <script>
-// Other imports
-import JSZip from 'jszip';
-
 // NextCloud Components
 import { getClient, getRootPath } from '@nextcloud/files/dav';
 import NcBreadcrumbs from '@nextcloud/vue/dist/Components/NcBreadcrumbs.js';
