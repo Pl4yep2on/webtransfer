@@ -73,7 +73,7 @@
                                 </path>
                             </svg>
                         </template>
-                        <template v-else>
+                        <template v-if="file.type === 'file' && file.basename.split('.').pop() !== 'zip'">
                             <div class="flex items-center justify-center cursor-pointer">
                                 <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
                                     class="w-10 h-10"
@@ -84,6 +84,12 @@
                                         transform="matrix(.7 0 0 .7 -.43 -.388)" />
                                 </svg>
                             </div>
+                        </template>
+                        <template v-if="file.type === 'file' && file.basename.split('.').pop() === 'zip'">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-10 h-10 ">
+                                <path fill="#969696"
+                                    d="M5.12,5H18.87L17.93,4H5.93L5.12,5M20.54,5.23C20.83,5.57 21,6 21,6.5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V6.5C3,6 3.17,5.57 3.46,5.23L4.84,3.55C5.12,3.21 5.53,3 6,3H18C18.47,3 18.88,3.21 19.15,3.55L20.54,5.23M6,18H12V15H6V18Z" />
+                            </svg>
                         </template>
                     </div>
                     <div class="ml-4 cursor-pointer max-sm:max-w-32 truncate">{{ file.basename }}</div>
@@ -308,10 +314,12 @@ export default {
 
                 if (zip) {
                     const response = await fetch(zip.url);
+                    this.transferProgress = 25;
                     if (!response.ok) {
                         throw new Error(`Erreur lors du téléchargement : ${response.statusText}`);
                     }
                     const zipFile = await response.arrayBuffer();
+                    this.transferProgress = 50;
 
                     await this.moveFileToTarget({
                         name: zip.name,
