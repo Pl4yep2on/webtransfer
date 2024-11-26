@@ -30,7 +30,7 @@ export default {
 	data() {
 		return {
 		sharedFile: null,
-		zipUrl: null,
+		zip: null,
 		};
 	},
 	methods: {

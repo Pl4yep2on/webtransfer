@@ -1,4 +1,4 @@
-<template> 
+<template>
     <div class="flex flex-col h-full w-full border">
         <!-- Breadcrumb -->
         <div class="flex flex-row mt-1 ml-3 items-start container">
@@ -56,7 +56,8 @@
         <div :class="[
             'overflow-y-auto h-full rounded-xl',
             isDragging ? 'border-green-500 border-4 border-dashed transition-all ease-in-out' : ''
-        ]" @drop.prevent="onDrop" @dragover.prevent="onDragOver" @dragenter.prevent @dragleave.prevent="onDragLeave($event)" >
+        ]" @drop.prevent="onDrop" @dragover.prevent="onDragOver" @dragenter.prevent
+            @dragleave.prevent="onDragLeave($event)">
 
             <div v-for="file in files" :key="file.filename"
                 class="flex h-16 items-center hover:bg-NcGray rounded-lg border-b last:border-b-0 border-gray-300"
@@ -118,9 +119,11 @@
             </div>
         </div>
 
-        <EditFileName v-if="!editDialogDisabled" :initialFileName="initialFileName" :isDirectory="isDirectory" @update="updateFileName" @close="closeEditDialog">
+        <EditFileName v-if="!editDialogDisabled" :initialFileName="initialFileName" :isDirectory="isDirectory"
+            @update="updateFileName" @close="closeEditDialog">
         </EditFileName>
-        <FileExistsDialog v-if="!fileExistDialogDisabled" :fileName="initialFileName" @overwrite="" @rename="" @cancel="closeFileExistsDialog">
+        <FileExistsDialog v-if="!fileExistDialogDisabled" :fileName="initialFileName" @overwrite="" @rename=""
+            @cancel="closeFileExistsDialog">
         </FileExistsDialog>
     </div>
 </template>
@@ -128,9 +131,11 @@
 
 
 <script>
-import { getClient, getRootPath } from '@nextcloud/files/dav';
+// Other imports
+import JSZip from 'jszip';
 
 // NextCloud Components
+import { getClient, getRootPath } from '@nextcloud/files/dav';
 import NcBreadcrumbs from '@nextcloud/vue/dist/Components/NcBreadcrumbs.js';
 import NcBreadcrumb from '@nextcloud/vue/dist/Components/NcBreadcrumb.js';
 import NcActions from '@nextcloud/vue/dist/Components/NcActions.js';
@@ -165,6 +170,10 @@ export default {
             type: Object,
             default: null,
         },
+        zip: {
+            type: Object,
+            default: null,
+        },
     },
     data() {
         return {
@@ -177,11 +186,11 @@ export default {
             isTransfering: false,
             isDragging: false,
             editDialogDisabled: true,
-            fileExistDialogDisabled:true,
+            fileExistDialogDisabled: true,
             initialFileName: '', // Nom originel du fichier/dossier a edite
             isDirectory: false, // Si l'element a edite est un dossier ou non
             transferProgress: 0,
-            transferStatus: 'bg-blue-500',
+            transferStatus: 'bg-blue-500'
         };
     },
     async mounted() {
@@ -241,30 +250,30 @@ export default {
         },
         async createNewFile() {
             if (!this.newFileName) return;
-            
-                try {
-                    const client = getClient();
-                    let filePath = '';
-                    console.log(this.newFileName)
-                    if(this.current_dir[this.current_dir.length - 1] === '/') {
-                        filePath = `${this.root_path}${this.current_dir}${this.newFileName}`;
-                    }
-                    else{
-                        filePath = `${this.root_path}${this.current_dir}/${this.newFileName}`;
-                    }
-                    const alreadyExists = await this.elemtAlreadyExists(filePath);
-                    if (!alreadyExists) {
-                        await client.createDirectory(filePath, '');
-                        this.newFileName = '';
-                        this.isAddFilePopupVisible = false;
-                        await this.fetchFiles();
-                    }
-                    else{
-                        alert(`Vous ne pouvez pas creer le dossier : ${this.newFileName} car un autre dossier porte deja le meme nom.`);
-                    }
-                } catch (error) {
-                    console.error('Erreur lors de la création du fichier :', error);
+
+            try {
+                const client = getClient();
+                let filePath = '';
+                console.log(this.newFileName)
+                if (this.current_dir[this.current_dir.length - 1] === '/') {
+                    filePath = `${this.root_path}${this.current_dir}${this.newFileName}`;
                 }
+                else {
+                    filePath = `${this.root_path}${this.current_dir}/${this.newFileName}`;
+                }
+                const alreadyExists = await this.elemtAlreadyExists(filePath);
+                if (!alreadyExists) {
+                    await client.createDirectory(filePath, '');
+                    this.newFileName = '';
+                    this.isAddFilePopupVisible = false;
+                    await this.fetchFiles();
+                }
+                else {
+                    alert(`Vous ne pouvez pas creer le dossier : ${this.newFileName} car un autre dossier porte deja le meme nom.`);
+                }
+            } catch (error) {
+                console.error('Erreur lors de la création du fichier :', error);
+            }
         },
         toggleAddFilePopup() {
             this.isAddFilePopupVisible = !this.isAddFilePopupVisible;
@@ -282,7 +291,7 @@ export default {
             event.preventDefault();
             if (event.target === event.currentTarget) {
                 this.isDragging = false;
-            } 
+            }
         },
         async onDrop(event) {
             event.preventDefault();
@@ -290,21 +299,38 @@ export default {
                 this.isDragging = false;
                 this.isTransfering = true;
                 const file = this.file;
+                const zip = this.zip;
                 console.log(file);
-                if (!file) return;
+                console.log(zip);
 
-                if (file.isDirectory) {
-                    await this.moveFilesOfFolder(file,'');
-                } else {
-                    this.transferProgress = 25;
-                    if (file.content && typeof file.content.arrayBuffer === 'function') {
-                        file.content = await file.content.arrayBuffer();
+
+                if (!file && !zip) return;
+
+                if (zip) {
+                    const response = await fetch(zip.url);
+                    if (!response.ok) {
+                        throw new Error(`Erreur lors du téléchargement : ${response.statusText}`);
                     }
-                    this.transferProgress = 50;
-                    await this.moveFileToTarget(file, '');
-                    this.transferProgress = 100;      
-                }
+                    const zipFile = await response.arrayBuffer();
 
+                    await this.moveFileToTarget({
+                        name: zip.name,
+                        content: zipFile
+                    }, '');
+                    this.transferProgress = 100;
+                } else {
+                    if (file.isDirectory) {
+                        await this.moveFilesOfFolder(file, '');
+                    } else {
+                        this.transferProgress = 25;
+                        if (file.content && typeof file.content.arrayBuffer === 'function') {
+                            file.content = await file.content.arrayBuffer();
+                        }
+                        this.transferProgress = 50;
+                        await this.moveFileToTarget(file, '');
+                        this.transferProgress = 100;
+                    }
+                }
                 this.isTransfering = false;
                 this.transferProgress = 0;
 
@@ -344,26 +370,26 @@ export default {
             try {
                 const client = getClient();
                 // Assurez-vous que le chemin parent est correctement formaté
-                
+
                 let fullPath = '';
                 fullPath = `${this.root_path}${this.current_dir}${parentPath}${file.name}`;
 
                 if (ArrayBuffer.isView(file.content)) {
                     file.content = Buffer.from(file.content);
                 }
-                
+
                 const alreadyExists = await this.elemtAlreadyExists(fullPath);
-                if(!alreadyExists) {
+                if (!alreadyExists) {
                     // Évitez les chemins incorrects en utilisant `path.normalize` si disponible
                     await client.putFileContents(fullPath, file.content);
 
                     // Recharge les fichiers après l'opération
                     await this.fetchFiles();
                 }
-                else{
+                else {
                     this.initialFileName = file.name;
                     this.fileExistDialogDisabled = false;
-                    while(!this.fileExistDialogDisabled) {
+                    while (!this.fileExistDialogDisabled) {
                         await this.sleep(50);
                     }
                 }
@@ -378,14 +404,14 @@ export default {
                 fullPath = `${this.root_path}${this.current_dir}${parentPath}${folder.name}`;
 
                 const alreadyExists = await this.elemtAlreadyExists(fullPath);
-                if(!alreadyExists) {
+                if (!alreadyExists) {
                     await client.createDirectory(fullPath);
                     await this.fetchFiles();
                 }
-                else{
+                else {
                     this.initialFileName = folder.name;
                     this.fileExistDialogDisabled = false;
-                    while(!this.fileExistDialogDisabled) {
+                    while (!this.fileExistDialogDisabled) {
                         await this.sleep();
                     }
                 }
@@ -393,16 +419,16 @@ export default {
                 console.error('Erreur lors de la création du dossier :', error);
             }
         },
-        async deleteElem(file){
+        async deleteElem(file) {
             const client = getClient()
-            try{
+            try {
                 let path = this.root_path + this.current_dir + "/" + file.basename;
                 await client.deleteFile(path);
             }
-            catch(error){
+            catch (error) {
                 console.error('Erreur lors de la suppression d\'un element : ', error);
             }
-            
+
             await this.fetchFiles();
         },
         /**
@@ -410,10 +436,10 @@ export default {
          * @param file le ficher/dossier dont on veut editer le nom
          */
         async editElem(file) {
-            if(file.type === 'file'){
+            if (file.type === 'file') {
                 this.isDirectory = false;
             }
-            else{
+            else {
                 this.isDirectory = true;
             }
             this.initialFileName = file.basename;
@@ -432,21 +458,21 @@ export default {
          * Change le nom du fichier sur le serveur Cloud via un client WebDAV
          * @param names Contient un initialFileName et un newFileName
          */
-        async updateFileName(names){
-            if(names.initialFileName !== names.newFileName){
+        async updateFileName(names) {
+            if (names.initialFileName !== names.newFileName) {
                 const client = getClient()
-                try{
+                try {
                     const oldName = this.root_path + this.current_dir + names.initialFileName;
                     const newName = this.root_path + this.current_dir + names.newFileName;
                     let alreadyExists = await this.elemtAlreadyExists(newName);
-                    if(!alreadyExists) {
-                        await client.moveFile(oldName,newName);
+                    if (!alreadyExists) {
+                        await client.moveFile(oldName, newName);
                     }
-                    else{
+                    else {
                         alert(`Vous ne pouvez pas renommez le fichier/dossier : ${names.newFileName} car un autre fichier/dossier porte deja le meme nom.`);
                     }
                 }
-                catch(error){
+                catch (error) {
                     console.error('Erreur lors du renommage d\'un element : ', error);
                 }
                 await this.fetchFiles();
@@ -456,7 +482,7 @@ export default {
          * Check si un fichier ou un dossier existe deja sur le serveur
          * @param path le chemin du fichier/dossier
          */
-        async elemtAlreadyExists(path){
+        async elemtAlreadyExists(path) {
             const client = getClient();
             let exists = await client.exists(path);
 
