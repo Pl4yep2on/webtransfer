@@ -4,16 +4,30 @@
             <div class="w-4/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">Nom</div>
             <div class="w-2/6 px-4 py-2 text-gray-500 font-semibold">Taille</div>
         </div>
+
+        <div class="flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300" v-if="!isLoading"
+            draggable="true" @dragstart="dragZip()">
+            <template>
+                <div class="flex items-center justify-center cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-10 h-10 ">
+                        <path fill="#969696" d="M5.12,5H18.87L17.93,4H5.93L5.12,5M20.54,5.23C20.83,5.57 21,6 21,6.5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V6.5C3,6 3.17,5.57 3.46,5.23L4.84,3.55C5.12,3.21 5.53,3 6,3H18C18.47,3 18.88,3.21 19.15,3.55L20.54,5.23M6,18H12V15H6V18Z"/>
+                    </svg>
+                </div>
+            </template>
+            <div class="w-4/6 flex items-center px-4 py-2  cursor-pointer">
+                <div class="truncate max-sm:max-w-32 max-w-64 cursor-pointer">{{ zipName }}</div>
+
+            </div>
+            <div class="w-2/6 py-2 cursor-pointer">
+                {{ formatFileSize(zipSize) }}
+            </div>
+        </div>
+
         <div v-if="!isLoading && zipContent.length !== 0" class="overflow-y-auto h-full">
             <div v-for="(file, index) in sortedFiles" :key="file.fullPath" class="flex flex-col">
 
-                <div
-                    class="flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
-                    @click="toggleFolder(file)"
-                    v-if="file.isDirectory"
-                    draggable="true" 
-                    @dragstart="onDragStart(file)"
-                >
+                <div class="flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
+                    @click="toggleFolder(file)" v-if="file.isDirectory" draggable="true" @dragstart="onDragStart(file)">
                     <div class="w-4/6 flex items-center py-2 border-r border-gray-300 cursor-pointer">
                         <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
                             <template>
@@ -27,10 +41,8 @@
                         <div class="w-4/6 flex items-center py-2 border-r border-gray-300 cursor-pointer">
                             <!-- Icône dynamique pour plié/déplié -->
                             <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
-                                <component 
-                                    :is="folderMap[file.fullPath] ? ChevronDownIcon : ChevronRightIcon" 
-                                    class="text-NcBlue w-6 h-6"
-                                />
+                                <component :is="folderMap[file.fullPath] ? ChevronDownIcon : ChevronRightIcon"
+                                    class="text-NcBlue w-6 h-6" />
                             </div>
                             <span class="ml-2 truncate cursor-pointer">{{ file.name }}</span>
                         </div>
@@ -38,12 +50,8 @@
                     <div class="w-1/6 px-4 py-2 cursor-pointer">-</div>
                 </div>
 
-                <div
-                    class="flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
-                    v-else
-                    draggable="true"
-                    @dragstart="onDragStart(file, $event)"
-                >
+                <div class="flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
+                    v-else draggable="true" @dragstart="onDragStart(file, $event)">
                     <template>
                         <div class="flex items-center justify-center cursor-pointer">
                             <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
@@ -56,8 +64,8 @@
                         </div>
                     </template>
                     <div class="w-4/6 flex items-center px-4 py-2  cursor-pointer">
-                        <div class="truncate max-sm:max-w-32 max-w-64">{{ file.name }}</div>
-                        
+                        <div class="truncate max-sm:max-w-32 max-w-64 cursor-pointer">{{ file.name }}</div>
+
                     </div>
                     <div class="w-2/6 py-2 cursor-pointer">
                         {{ formatFileSize(file.size) }}
@@ -67,7 +75,7 @@
             </div>
         </div>
         <div v-if="isLoading" class="flex h-full items-center justify-center">
-            <component :is="Loading" class="text-white w-24 h-24 animate-spin" :size="40"/>
+            <component :is="Loading" class="text-white w-24 h-24 animate-spin" :size="40" />
         </div>
         <div v-if="!isLoading && zipContent.length === 0" class="flex h-full items-center justify-center">
             <span class="text-gray-500">Aucun contenu à afficher</span>
@@ -87,13 +95,15 @@ export default {
     data() {
         return {
             zipContent: [],
-            folderMap: {}, 
+            folderMap: {},
             archiveUrl: '',
             token: '',
             ChevronRightIcon,
             ChevronDownIcon,
             isLoading: ref(false),
             Loading,
+            zipName: '',
+            zipSize: 0,
         };
     },
     props: {
@@ -146,7 +156,9 @@ export default {
             try {
                 const response = await fetch(this.zipUrl);
                 const zipData = await response.blob();
+                this.zipName = this.zipUrl.split('/').pop();
                 const zip = await JSZip.loadAsync(zipData);
+                this.zipSize = zipData.size;
 
                 const files = [];
 
@@ -218,6 +230,14 @@ export default {
             if (!file.isDirectory) return;
             const currentState = this.folderMap[file.fullPath];
             this.$set(this.folderMap, file.fullPath, !currentState);
+        },
+        async dragZip() {
+            try {
+                const zip = {name: this.zipName, url: this.zipUrl};
+                this.$emit('zip-upload', zip);
+            } catch (error) {
+                console.error('Erreur lors du drag du ZIP :', error);
+            }
         },
         async onDragStart(file) {
 
