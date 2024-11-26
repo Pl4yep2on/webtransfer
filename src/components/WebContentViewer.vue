@@ -15,7 +15,7 @@
                 </div>
             </template>
             <div class="w-4/6 flex items-center px-4 py-2  cursor-pointer">
-                <div class="truncate max-sm:max-w-32 max-w-64">{{ zipName }}</div>
+                <div class="truncate max-sm:max-w-32 max-w-64 cursor-pointer">{{ zipName }}</div>
 
             </div>
             <div class="w-2/6 py-2 cursor-pointer">
@@ -64,7 +64,7 @@
                         </div>
                     </template>
                     <div class="w-4/6 flex items-center px-4 py-2  cursor-pointer">
-                        <div class="truncate max-sm:max-w-32 max-w-64">{{ file.name }}</div>
+                        <div class="truncate max-sm:max-w-32 max-w-64 cursor-pointer">{{ file.name }}</div>
 
                     </div>
                     <div class="w-2/6 py-2 cursor-pointer">
