@@ -707,8 +707,16 @@ video {
   width: 100%;
 }
 
+.w-5\/6 {
+  width: 83.333333%;
+}
+
 .max-w-64 {
   max-width: 16rem;
+}
+
+.max-w-96 {
+  max-width: 24rem;
 }
 
 .transform {
@@ -1029,6 +1037,18 @@ video {
 @media (min-width: 640px) {
   .sm\:m-6 {
     margin: 1.5rem;
+  }
+
+  .sm\:ml-0 {
+    margin-left: 0px;
+  }
+
+  .sm\:mr-0 {
+    margin-right: 0px;
+  }
+
+  .sm\:ml-4 {
+    margin-left: 1rem;
   }
 
   .sm\:w-1\/3 {
