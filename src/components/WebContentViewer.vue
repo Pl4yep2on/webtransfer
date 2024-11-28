@@ -1,11 +1,11 @@
 <template>
     <div class="flex flex-col h-full w-full border">
         <div class="flex h-12 items-center border-b border-gray-300">
-            <div class="w-4/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">Nom</div>
-            <div class="w-2/6 px-4 py-2 text-gray-500 font-semibold">Taille</div>
+            <div class="w-5/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">Nom</div>
+            <div class="w-1/6 px-4 py-2 text-gray-500 font-semibold">Taille</div>
         </div>
 
-        <div class="flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300" v-if="!isLoading"
+        <div class="flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300" v-if="!isLoading && zipContent.length !== 0"
             draggable="true" @dragstart="dragZip()">
             <template>
                 <div class="flex items-center justify-center cursor-pointer">
@@ -14,11 +14,11 @@
                     </svg>
                 </div>
             </template>
-            <div class="w-4/6 flex items-center px-4 py-2  cursor-pointer">
+            <div class="w-5/6 flex items-center px-4 py-2  cursor-pointer">
                 <div class="truncate max-sm:max-w-32 max-w-64 cursor-pointer">{{ zipName }}</div>
 
             </div>
-            <div class="w-2/6 py-2 cursor-pointer">
+            <div class="w-1/6 py-2 cursor-pointer">
                 {{ formatFileSize(zipSize) }}
             </div>
         </div>
@@ -27,8 +27,11 @@
             <div v-for="(file, index) in sortedFiles" :key="file.fullPath" class="flex flex-col">
 
                 <div class="flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
+                    :style="{ 
+                        'padding-left': `${0.5 * (file.depth + 1)}rem`
+                    }"
                     @click="toggleFolder(file)" v-if="file.isDirectory" draggable="true" @dragstart="onDragStart(file)" @dragend="onDragEnd">
-                    <div class="w-4/6 flex items-center py-2 border-r border-gray-300 cursor-pointer">
+                    <div class="w-5/6 flex items-center py-2 border-r border-gray-300 cursor-pointer">
                         <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
                             <template>
                                 <svg fill="currentColor" viewBox="0 0 24 24" class="text-NcBlue w-10 h-10 ">
@@ -51,6 +54,9 @@
                 </div>
 
                 <div class="flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
+                    :style="{ 
+                        'padding-left': `${0.5 * (file.depth + 1)}rem`
+                    }"
                     v-else draggable="true" @dragstart="onDragStart(file, $event)">
                     <template>
                         <div class="flex items-center justify-center cursor-pointer">
@@ -63,11 +69,10 @@
                             </svg>
                         </div>
                     </template>
-                    <div class="w-4/6 flex items-center px-4 py-2  cursor-pointer">
-                        <div class="truncate max-sm:max-w-32 max-w-64 cursor-pointer">{{ file.name }}</div>
-
+                    <div class="w-5/6 flex items-center px-4 py-2  cursor-pointer">
+                        <div class="truncate max-sm:max-w-32 max-w-96 cursor-pointer">{{ file.name }}</div>
                     </div>
-                    <div class="w-2/6 py-2 cursor-pointer">
+                    <div class="w-1/6 py-2 cursor-pointer">
                         {{ formatFileSize(file.size) }}
                     </div>
                 </div>
@@ -89,6 +94,7 @@ import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue';
 import ChevronDownIcon from 'vue-material-design-icons/ChevronDown.vue';
 import Loading from 'vue-material-design-icons/Loading.vue';
 import { ref } from 'vue';
+import path from 'path';
 
 export default {
     name: 'WebContentViewer',
@@ -186,6 +192,7 @@ export default {
                                 size: isDirectory ? 0 : file._data.uncompressedSize,
                                 content: isDirectory ? null : '',  // Initialiser 'content' pour les fichiers
                                 children: isDirectory ? [] : null,
+                                depth: pathParts.length, // Profondeur du fichier dans l'arborescence
                                 //remove the name of the file from the path
                                 parentPath: i > 0 ? pathParts[i - 1] : '',
                                 unzip: promise
