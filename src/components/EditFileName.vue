@@ -51,7 +51,8 @@ export default {
             if(this.newFileName !== ''){
                 // Séparer le nom de fichier sans l'extension
                 const fileNameWithoutExtension = this.newFileName.slice(0, this.newFileName.lastIndexOf('.'));
-                if (fileNameWithoutExtension !== '') {
+                const fileNameWithoutPoints = fileNameWithoutExtension.replace(/\./g, "");
+                if (fileNameWithoutPoints !== '') {
                     // Re-construire le nom du fichier avec l'extension d'origine
                     const newFileNameWithOriginalExtension = fileNameWithoutExtension + '.' + this.extension;
 
