@@ -51,16 +51,18 @@ export default {
             if(this.newFileName !== ''){
                 // Séparer le nom de fichier sans l'extension
                 const fileNameWithoutExtension = this.newFileName.slice(0, this.newFileName.lastIndexOf('.'));
-                // Re-construire le nom du fichier avec l'extension d'origine
-                const newFileNameWithOriginalExtension = fileNameWithoutExtension + '.' + this.extension;
+                if (fileNameWithoutExtension !== '') {
+                    // Re-construire le nom du fichier avec l'extension d'origine
+                    const newFileNameWithOriginalExtension = fileNameWithoutExtension + '.' + this.extension;
 
-                if (!this.isDirectory && this.newFileName !== newFileNameWithOriginalExtension) {
-                    // L'extension a été modifiée, on rétablit l'extension correcte
-                    this.newFileName = newFileNameWithOriginalExtension;
+                    if (!this.isDirectory && this.newFileName !== newFileNameWithOriginalExtension) {
+                        // L'extension a été modifiée, on rétablit l'extension correcte
+                        this.newFileName = newFileNameWithOriginalExtension;
+                    }
+
+                    this.$emit("update", { initialFileName: this.initialFileName, newFileName: this.newFileName });
+                    this.closeModal();
                 }
-
-                this.$emit("update", { initialFileName: this.initialFileName, newFileName: this.newFileName });
-                this.closeModal();
             }
         },
         closeModal() {
