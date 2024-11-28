@@ -5,7 +5,7 @@
             <div class="w-1/6 px-4 py-2 text-gray-500 font-semibold">Taille</div>
         </div>
 
-        <div class="flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300" v-if="!isLoading"
+        <div class="flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300" v-if="!isLoading && zipContent.length !== 0"
             draggable="true" @dragstart="dragZip()">
             <template>
                 <div class="flex items-center justify-center cursor-pointer">
@@ -71,7 +71,6 @@
                     </template>
                     <div class="w-5/6 flex items-center px-4 py-2  cursor-pointer">
                         <div class="truncate max-sm:max-w-32 max-w-96 cursor-pointer">{{ file.name }}</div>
-
                     </div>
                     <div class="w-1/6 py-2 cursor-pointer">
                         {{ formatFileSize(file.size) }}
