@@ -27,7 +27,7 @@
             <div v-for="(file, index) in sortedFiles" :key="file.fullPath" class="flex flex-col">
 
                 <div class="flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
-                    @click="toggleFolder(file)" v-if="file.isDirectory" draggable="true" @dragstart="onDragStart(file)">
+                    @click="toggleFolder(file)" v-if="file.isDirectory" draggable="true" @dragstart="onDragStart(file)" @dragend="onDragEnd">
                     <div class="w-4/6 flex items-center py-2 border-r border-gray-300 cursor-pointer">
                         <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
                             <template>
@@ -218,6 +218,10 @@ export default {
             } catch (error) {
                 console.error('Erreur lors du chargement du contenu du ZIP :', error);
             }
+        },
+        onDragEnd(event) {
+            event.preventDefault();
+            this.$emit('dragEnded');
         },
 
         formatFileSize(size) {

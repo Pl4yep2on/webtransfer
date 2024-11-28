@@ -5,12 +5,12 @@
 			<!-- Première section -->
 			<div 
 				class="w-full sm:w-1/3 max-sm:h-2/5 p-4 sm:m-6 rounded-xl bg-NcBlack/40">
-				<WebContentViewer @zip-upload="handleZipUpload" @file-upload="handleFileUpload" zipUrl="http://localhost:8000/dummyZip.zip"/>
+				<WebContentViewer @zip-upload="handleZipUpload" @file-upload="handleFileUpload" @dragEnded="toggleDragEnded" zipUrl="http://localhost:8000/dummyZip.zip"/>
 			</div>
 			<!-- Deuxième section -->
 			<div 
 				class="w-full sm:w-2/3 max-sm:h-3/5 p-4 sm:m-6 bg-NcBlack rounded-xl">
-				<FileTable :file="sharedFile" :zip="zip"/>
+				<FileTable :file="sharedFile" :zip="zip" :dragEnded="dragEnded" @dragEnded="toggleDragEnded"/>
 			</div>
 		</div>
 	</div>
@@ -29,16 +29,20 @@ export default {
 	},
 	data() {
 		return {
-		sharedFile: null,
-		zip: null,
+			sharedFile: null,
+			zip: null,
+			dragEnded: false,
 		};
 	},
 	methods: {
 		handleFileUpload(file) {
-		this.sharedFile = file;
+			this.sharedFile = file;
 		},
 		handleZipUpload(zip) {
-		this.zip = zip;
+			this.zip = zip;
+		},
+		toggleDragEnded(){
+			this.dragEnded = !this.dragEnded;
 		},
 	},
 }

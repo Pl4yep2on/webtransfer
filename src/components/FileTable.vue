@@ -1,135 +1,154 @@
 <template>
-    <div class="flex flex-col h-full w-full border">
-        <!-- Breadcrumb -->
-        <div class="flex flex-row mt-1 ml-3 items-start container">
-            <NcBreadcrumbs class="max-h-8">
-                <NcBreadcrumb name="Home" title="Title of the Home folder" @click="handleClickBreadcrumb(-1)">
-                </NcBreadcrumb>
-                <NcBreadcrumb v-if="getBreadcrumbParts().length > 0" v-for="(part, index) in breadcrumbParts"
-                    :key="index" :name="part" @click="handleClickBreadcrumb(index)">
-                </NcBreadcrumb>
-                <template #actions>
-                    <div class="flex items-center ml-2">
-                        <button v-if="!isTransfering" @click="toggleAddFilePopup"
-                            class="flex items-center space-x-2 bg-blue-100 text-blue-600 font-medium px-4 py-2 rounded-md hover:bg-blue-200 transition">
-                            <Plus :size="20" />
-                            <span>Nouveau</span>
-                        </button>
-                        <div v-else>
-                            <ProgressBar :value="transferProgress" :color="transferStatus" />
-                        </div>
-                    </div>
-                </template>
-            </NcBreadcrumbs>
-        </div>
-
-
-        <!-- Popup pour la création de fichier -->
-        <div v-if="isAddFilePopupVisible"
-            class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50">
-            <div class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
-                <h2 class="text-lg font-semibold mb-4">Créer un nouveau fichier</h2>
-                <input v-model="newFileName" type="text" placeholder="Nom du fichier"
-                    class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <div class="flex justify-end mt-4 space-x-2">
-                    <button @click="toggleAddFilePopup"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">
-                        Annuler
-                    </button>
-                    <button @click="createNewFile"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
-                        Créer
-                    </button>
-                </div>
+    <div>
+        <!-- Boutons pour fichiers :thumbsup: -->
+        <div class="flex flex-row gap-2 p-2">
+            <div
+                :class="getClassButton('default')"
+                @click="changeTab('default')"
+            >
+                Tous les fichiers
+            </div>
+            <div 
+                :class="getClassButton('favorites')"
+                @click="changeTab('favorites')"
+            >
+                Favoris
             </div>
         </div>
 
-        <!-- En-tête -->
-        <div class="flex h-12 items-center border-b border-gray-300">
-            <div class="w-7/12 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">Nom</div>
-            <div class="w-2/12 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">Type</div>
-            <div class="w-2/12 px-4 py-2 text-gray-500 font-semibold">Taille</div>
-            <div class="w-1/12 px-4 py-2 text-gray-500 font-semibold">Options</div>
-        </div>
-
-        <!-- Contenu -->
-        <div :class="[
-            'overflow-y-auto h-full rounded-xl',
-            isDragging ? 'border-green-500 border-4 border-dashed transition-all ease-in-out' : ''
-        ]" @drop.prevent="onDrop" @dragover.prevent="onDragOver" @dragenter.prevent
-            @dragleave.prevent="onDragLeave($event)">
-
-            <div v-for="file in files" :key="file.filename"
-                class="flex h-16 items-center hover:bg-NcGray rounded-lg border-b last:border-b-0 border-gray-300"
-                @click="handleClickElem(file)">
-
-                <!-- Nom -->
-                <div class="w-7/12 flex items-center px-4 py-2 border-r border-gray-300 cursor-pointer">
-                    <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
-                        <template v-if="file.type === 'directory'">
-                            <svg fill="currentColor" viewBox="0 0 24 24" class="text-NcBlue w-10 h-10 ">
-                                <path
-                                    d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z">
-                                </path>
-                            </svg>
-                        </template>
-                        <template v-if="file.type === 'file' && file.basename.split('.').pop() !== 'zip'">
-                            <div class="flex items-center justify-center cursor-pointer">
-                                <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
-                                    class="w-10 h-10"
-                                    style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2">
-                                    <path
-                                        d="M6 22c-.55 0-1.021-.196-1.412-.587A1.927 1.927 0 0 1 4 20V4c0-.55.196-1.021.588-1.413A1.926 1.926 0 0 1 6 2h8l6 6v12a1.93 1.93 0 0 1-.587 1.413A1.93 1.93 0 0 1 18 22H6Z"
-                                        style="fill:#969696;fill-rule:nonzero"
-                                        transform="matrix(.7 0 0 .7 -.43 -.388)" />
-                                </svg>
+        <div class="flex flex-col h-full w-full border">
+            <!-- Breadcrumb -->
+            <div class="flex flex-row mt-1 ml-3 items-start container">
+                <NcBreadcrumbs class="max-h-8">
+                    <NcBreadcrumb name="Home" title="Title of the Home folder" @click="handleClickBreadcrumb(-1)">
+                    </NcBreadcrumb>
+                    <NcBreadcrumb v-if="getBreadcrumbParts().length > 0" v-for="(part, index) in breadcrumbParts"
+                        :key="index" :name="part" @click="handleClickBreadcrumb(index)">
+                    </NcBreadcrumb>
+                    <template #actions>
+                        <div class="flex items-center ml-2">
+                            <button v-if="!isTransfering" @click="toggleAddFilePopup"
+                                class="flex items-center space-x-2 bg-blue-100 text-blue-600 font-medium px-4 py-2 rounded-md hover:bg-blue-200 transition">
+                                <Plus :size="20" />
+                                <span>Nouveau</span>
+                            </button>
+                            <div v-else>
+                                <ProgressBar :value="transferProgress" :color="transferStatus" />
                             </div>
-                        </template>
-                        <template v-if="file.type === 'file' && file.basename.split('.').pop() === 'zip'">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-10 h-10 ">
-                                <path fill="#969696"
-                                    d="M5.12,5H18.87L17.93,4H5.93L5.12,5M20.54,5.23C20.83,5.57 21,6 21,6.5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V6.5C3,6 3.17,5.57 3.46,5.23L4.84,3.55C5.12,3.21 5.53,3 6,3H18C18.47,3 18.88,3.21 19.15,3.55L20.54,5.23M6,18H12V15H6V18Z" />
-                            </svg>
-                        </template>
+                        </div>
+                    </template>
+                </NcBreadcrumbs>
+            </div>
+
+
+            <!-- Popup pour la création de fichier -->
+            <div v-if="isAddFilePopupVisible"
+                class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50">
+                <div class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
+                    <h2 class="text-lg font-semibold mb-4">Créer un nouveau fichier</h2>
+                    <input v-model="newFileName" type="text" placeholder="Nom du fichier"
+                        class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <div class="flex justify-end mt-4 space-x-2">
+                        <button @click="toggleAddFilePopup"
+                            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">
+                            Annuler
+                        </button>
+                        <button @click="createNewFile"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+                            Créer
+                        </button>
                     </div>
-                    <div class="ml-4 cursor-pointer max-sm:max-w-32 truncate">{{ file.basename }}</div>
-                </div>
-
-                <!-- Type -->
-                <div class="w-2/12 px-4 py-2 border-r border-gray-300 cursor-pointer">
-                    {{ file.type === 'directory' ? 'Dossier' : 'Fichier' }}
-                </div>
-
-                <!-- Taille -->
-                <div class="w-2/12 px-4 py-2 cursor-pointer">
-                    {{ file.type === 'directory' ? '-' : formatFileSize(file.size) }}
-                </div>
-
-                <!-- Options -->
-                <div class="w-1/12 px-4 py-2 cursor-pointer" @click.stop>
-                    <NcActions>
-                        <NcActionButton @click="deleteElem(file)">
-                            <template #icon>
-                                <Delete :size="20" />
-                            </template>
-                            Supprimer
-                        </NcActionButton>
-                        <NcActionButton @click="editElem(file)">
-                            <template #icon>
-                                <Pencil :size="20" />
-                            </template>
-                            Editer
-                        </NcActionButton>
-                    </NcActions>
                 </div>
             </div>
-        </div>
 
-        <EditFileName v-if="!editDialogDisabled" :initialFileName="initialFileName" :isDirectory="isDirectory"
-            @update="updateFileName" @close="closeEditDialog">
-        </EditFileName>
-        <FileExistsDialog v-if="!fileExistDialogDisabled" :fileName="initialFileName" :isDirectory="isDirectory" @overwrite="setOverwrite" @rename="setRename" @cancel="cancelDrop">
-        </FileExistsDialog>
+            <!-- En-tête -->
+            <div class="flex h-12 items-center border-b border-gray-300">
+                <div class="w-7/12 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">Nom</div>
+                <div class="w-2/12 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">Type</div>
+                <div class="w-2/12 px-4 py-2 text-gray-500 font-semibold">Taille</div>
+                <div class="w-1/12 px-4 py-2 text-gray-500 font-semibold">Options</div>
+            </div>
+
+            <!-- Contenu -->
+            <div :class="[
+                'overflow-y-auto h-full rounded-xl',
+                isDragging && isDroppable ? 'border-green-500 border-4 border-dashed transition-all ease-in-out' : 
+                isDragging && !isDroppable ? 'border-red-500 border-4 border-dashed transition-all ease-in-out !cursor-no-drop' : ''
+            ]" @drop.prevent="onDrop" @dragover.prevent="onDragOver" @dragenter.prevent="onDragEnter"
+                @dragleave.prevent="onDragLeave($event)" @dragend="onDragEnd">
+
+                <div v-for="file in files" :key="file.filename"
+                    class="flex h-16 items-center hover:bg-NcGray rounded-lg border-b last:border-b-0 border-gray-300"
+                    @click="handleClickElem(file)">
+
+                    <!-- Nom -->
+                    <div class="w-7/12 flex items-center px-4 py-2 border-r border-gray-300">
+                        <div class="w-12 h-12 flex items-center justify-center">
+                            <template v-if="file.type === 'directory'">
+                                <svg fill="currentColor" viewBox="0 0 24 24" class="text-NcBlue w-10 h-10 ">
+                                    <path
+                                        d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z">
+                                    </path>
+                                </svg>
+                            </template>
+                            <template v-if="file.type === 'file' && file.basename.split('.').pop() !== 'zip'">
+                                <div :class="['flex items-center justify-center']">
+                                    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
+                                        class="w-10 h-10"
+                                        style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2">
+                                        <path
+                                            d="M6 22c-.55 0-1.021-.196-1.412-.587A1.927 1.927 0 0 1 4 20V4c0-.55.196-1.021.588-1.413A1.926 1.926 0 0 1 6 2h8l6 6v12a1.93 1.93 0 0 1-.587 1.413A1.93 1.93 0 0 1 18 22H6Z"
+                                            style="fill:#969696;fill-rule:nonzero"
+                                            transform="matrix(.7 0 0 .7 -.43 -.388)" />
+                                    </svg>
+                                </div>
+                            </template>
+                            <template v-if="file.type === 'file' && file.basename.split('.').pop() === 'zip'">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-10 h-10 ">
+                                    <path fill="#969696"
+                                        d="M5.12,5H18.87L17.93,4H5.93L5.12,5M20.54,5.23C20.83,5.57 21,6 21,6.5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V6.5C3,6 3.17,5.57 3.46,5.23L4.84,3.55C5.12,3.21 5.53,3 6,3H18C18.47,3 18.88,3.21 19.15,3.55L20.54,5.23M6,18H12V15H6V18Z" />
+                                </svg>
+                            </template>
+                        </div>
+                        <div class="ml-4 cursor-pointer max-sm:max-w-32 truncate">{{ file.basename }}</div>
+                    </div>
+
+                    <!-- Type -->
+                    <div class="w-2/12 px-4 py-2 border-r border-gray-300">
+                        {{ file.type === 'directory' ? 'Dossier' : 'Fichier' }}
+                    </div>
+
+                    <!-- Taille -->
+                    <div class="w-2/12 px-4 py-2">
+                        {{ file.type === 'directory' ? '-' : formatFileSize(file.size) }}
+                    </div>
+
+                    <!-- Options -->
+                    <div class="w-1/12 px-4 py-2" @click.stop>
+                        <NcActions>
+                            <NcActionButton @click="deleteElem(file)">
+                                <template #icon>
+                                    <Delete :size="20" />
+                                </template>
+                                Supprimer
+                            </NcActionButton>
+                            <NcActionButton @click="editElem(file)">
+                                <template #icon>
+                                    <Pencil :size="20" />
+                                </template>
+                                Editer
+                            </NcActionButton>
+                        </NcActions>
+                    </div>
+                </div>
+            </div>
+
+            <EditFileName v-if="!editDialogDisabled" :initialFileName="initialFileName" :isDirectory="isDirectory"
+                @update="updateFileName" @close="closeEditDialog">
+            </EditFileName>
+            <FileExistsDialog v-if="!fileExistDialogDisabled" :fileName="initialFileName" :isDirectory="isDirectory" @overwrite="setOverwrite" @rename="setRename" @cancel="cancelDrop">
+            </FileExistsDialog>
+        </div>
     </div>
 </template>
 
@@ -137,7 +156,7 @@
 
 <script>
 // NextCloud Components
-import { getClient, getRootPath } from '@nextcloud/files/dav';
+import { getClient, getRootPath, getFavoriteNodes } from '@nextcloud/files/dav';
 import NcBreadcrumbs from '@nextcloud/vue/dist/Components/NcBreadcrumbs.js';
 import NcBreadcrumb from '@nextcloud/vue/dist/Components/NcBreadcrumb.js';
 import NcActions from '@nextcloud/vue/dist/Components/NcActions.js';
@@ -176,6 +195,19 @@ export default {
             type: Object,
             default: null,
         },
+        dragEnded: {
+            type: Boolean,
+            Required: true,
+        }
+    },
+    watch: {
+        dragEnded(val) {
+            if(val === true) {
+                this.isDragging = false;
+                this.isDroppable = false;
+                this.$emit('dragEnded');
+            }
+        }
     },
     data() {
         return {
@@ -187,6 +219,7 @@ export default {
             newFileName: '',
             isTransfering: false,
             isDragging: false,
+            isDroppable: true,
             editDialogDisabled: true,
             fileExistDialogDisabled: true,
             initialFileName: '', // Nom originel du fichier/dossier a edite
@@ -198,6 +231,7 @@ export default {
             cancelOperation: false,
             rename: false,
             newElemName: '',
+            currentTab: 'default',
         };
     },
     async mounted() {
@@ -205,10 +239,28 @@ export default {
         this.breadcrumbParts = this.getBreadcrumbParts();
     },
     methods: {
+        async changeTab(name) {
+            this.currentTab = name;
+            this.current_dir = '/';
+            await this.fetchFiles();
+            if(this.currentTab === 'default'){
+                this.isDroppable = true;
+            }
+            else {
+                this.isDroppable = false;
+            }
+        },
         async fetchFiles() {
             try {
                 const client = getClient();
-                const directoryItems = await client.getDirectoryContents(this.root_path + this.current_dir);
+                let directoryItems;
+                if (this.currentTab === 'default'){
+                    directoryItems = await client.getDirectoryContents(this.root_path + this.current_dir);
+                }
+                else if(this.currentTab === 'favorites'){
+                    let favoriteNodes = await getFavoriteNodes(client);
+                    directoryItems = this.computeFavoritesNodes(favoriteNodes);
+                }
 
                 this.files = directoryItems.map(file => ({
                     basename: file.basename,
@@ -219,6 +271,29 @@ export default {
             } catch (error) {
                 console.error('Erreur lors de la récupération des fichiers et dossiers :', error);
             }
+        },
+        computeFavoritesNodes(favoriteNodes) {
+            let directoryItems = [];
+
+            let i = 0;
+            favoriteNodes.forEach(element => {
+                // Création de l'objet elemData pour chaque élément
+                let elemData = {
+                    basename: element._data.displayname,
+                    etag: element._attributes.etag,
+                    filename: element._attributes.filename,
+                    lastmod: element._attributes.lastmod,
+                    mime: element._data.mime,
+                    size: element._data.size,
+                    type: element._attributes.type,
+                };
+
+                // Ajout de elemData à directoryItems, indexé par un identifiant unique (par exemple, basename)
+                directoryItems[i] = elemData;
+                i++;
+            });
+
+            return directoryItems;
         },
         formatFileSize(size) {
             if (size < 1024) return `${size} B`;
@@ -287,11 +362,21 @@ export default {
         },
         onDragOver(event) {
             event.preventDefault();
+            if(this.currentTab === 'favorites' && this.current_dir === '/'){
+                event.dataTransfer.dropEffect = 'none';
+                this.isDroppable = false;
+            }
+            else{
+                this.isDroppable = true;
+            }
             if (!this.isDragging) {
                 this.isDragging = true;
             } else {
                 return;
             }
+        },
+        onDragEnter(event){
+            event.preventDefault()
         },
         onDragLeave(event) {
             event.preventDefault();
@@ -299,59 +384,67 @@ export default {
                 this.isDragging = false;
             }
         },
+        onDragEnd() {
+            this.isDragging = false;
+            console.log('feur2')
+        },
         async onDrop(event) {
             event.preventDefault();
-            try {
-                this.isDragging = false;
-                this.isTransfering = true;
-                const file = this.file;
-                const zip = this.zip;
-                console.log(file);
-                console.log(zip);
+            this.isDragging = false; // Pour enlever le contour rouge si on ne peut pas drop sinon il reste affiche
+            if(this.isDroppable){
+                try {
+                    this.isTransfering = true;
+                    const file = this.file;
+                    const zip = this.zip;
+                    console.log(file);
+                    console.log(zip);
 
 
-                if (!file && !zip) return;
+                    if (!file && !zip) return;
 
-                if (zip) {
-                    const response = await fetch(zip.url);
-                    this.transferProgress = 25;
-                    if (!response.ok) {
-                        throw new Error(`Erreur lors du téléchargement : ${response.statusText}`);
-                    }
-                    const zipFile = await response.arrayBuffer();
-                    this.transferProgress = 50;
-
-                    await this.moveFileToTarget({
-                        name: zip.name,
-                        content: zipFile
-                    }, '');
-                    this.transferProgress = 100;
-                } else {
-                    if (file.isDirectory) {
-                        await this.moveFilesOfFolder(file, '');
-                    } else {
+                    if (zip) {
+                        const response = await fetch(zip.url);
                         this.transferProgress = 25;
-                        if (file.content && typeof file.content.arrayBuffer === 'function') {
-                            file.content = await file.content.arrayBuffer();
+                        if (!response.ok) {
+                            throw new Error(`Erreur lors du téléchargement : ${response.statusText}`);
                         }
+                        const zipFile = await response.arrayBuffer();
                         this.transferProgress = 50;
-                        await this.moveFileToTarget(file, '');
-                        this.transferProgress = 100;
-                    }
-                }
-                this.isTransfering = false;
-                this.transferProgress = 0;
-                this.cancelOperation = false;
 
-            } catch (error) {
-                console.error('Erreur lors du drop :', error);
-                this.transferStatus = 'bg-red-500';
-                this.isTransfering = false;
+                        await this.moveFileToTarget({
+                            name: zip.name,
+                            content: zipFile
+                        }, '');
+                        this.transferProgress = 100;
+                    } else {
+                        if (file.isDirectory) {
+                            await this.moveFilesOfFolder(file, '');
+                        } else {
+                            this.transferProgress = 25;
+                            if (file.content && typeof file.content.arrayBuffer === 'function') {
+                                file.content = await file.content.arrayBuffer();
+                            }
+                            this.transferProgress = 50;
+                            await this.moveFileToTarget(file, '');
+                            this.transferProgress = 100;
+                        }
+                    }
+                    this.isTransfering = false;
+                    this.transferProgress = 0;
+                    this.cancelOperation = false;
+
+                } catch (error) {
+                    console.error('Erreur lors du drop :', error);
+                    this.transferStatus = 'bg-red-500';
+                    this.isTransfering = false;
+                }
+                this.overwrite = false;
+                this.applyToAll = false;
+                this.rename = false;
+                this.newElemName = '';
             }
-            this.overwrite = false;
-            this.applyToAll = false;
-            this.rename = false;
-            this.newElemName = '';
+            this.isDroppable = true;
+            console.log('feur')
         },
         async moveFilesOfFolder(folder, parentPath) {
             await this.createFolder(folder, parentPath + '/');
@@ -389,7 +482,7 @@ export default {
 
                 let fullPath = '';
                 if(!this.rename) {
-                    fullPath = `${this.root_path}${this.current_dir}${parentPath}${file.name}`;
+                    fullPath = `${this.root_path}${this.current_dir}${parentPath}/${file.name}`;
                 }
                 else if (this.rename && newName){
                     fullPath = `${this.root_path}${this.current_dir}${parentPath}${newName}`;
@@ -542,6 +635,17 @@ export default {
         cancelDrop(){
             this.cancelOperation = true;
             this.closeFileExistsDialog();
+        },
+        getClassButton(name) {
+            let cssStyle = "flex h-12 w-32 text-sm py-2 transition-colors font-medium border-r last:border-r-0 justify-center items-center";
+
+            if(this.currentTab === name) {
+                cssStyle += ' bg-blue-400 text-white';
+            } else {
+                cssStyle += ' hover:bg-gray-100 text-gray-700 bg-gray-300';
+            }
+
+            return cssStyle;
         },
         async sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
