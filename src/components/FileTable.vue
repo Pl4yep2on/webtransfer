@@ -650,7 +650,7 @@ export default {
             let cssStyle;
 
             if(this.currentTab === name) {
-                cssStyle = ' !bg-NcBlue/30';
+                cssStyle = ' !bg-NcBlue/50';
             } else {
                 cssStyle = '';
             }
