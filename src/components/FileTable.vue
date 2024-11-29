@@ -612,7 +612,6 @@ export default {
                     const oldName = this.root_path + this.current_dir + '/' + names.initialFileName;
                     const newName = this.root_path + this.current_dir + '/' + names.newFileName;
                     let alreadyExists = await this.elemtAlreadyExists(newName);
-                    console.log(names)
                     if (!alreadyExists) {
                         await client.moveFile(oldName, newName);
                     }
