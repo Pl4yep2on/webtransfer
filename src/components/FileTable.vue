@@ -2,18 +2,18 @@
     <div class="h-full">
         <!-- Boutons pour fichiers :thumbsup: -->
         <div class="flex flex-row gap-2 p-2">
-            <div
+            <button
                 :class="getClassButton('default')"
                 @click="changeTab('default')"
             >
                 Tous les fichiers
-            </div>
-            <div 
+            </button>
+            <button 
                 :class="getClassButton('favorites')"
                 @click="changeTab('favorites')"
             >
                 Favoris
-            </div>
+            </button>
         </div>
 
         <div class="flex flex-col h-full w-full border">
@@ -71,7 +71,7 @@
 
             <!-- Contenu -->
             <div :class="[
-                'overflow-y-auto h-full rounded-xl',
+                'overflow-y-auto h-full mb-14 rounded-xl',
                 isDragging && isDroppable ? 'border-green-500 border-4 border-dashed transition-all ease-in-out' : 
                 isDragging && !isDroppable ? 'border-red-500 border-4 border-dashed transition-all ease-in-out !cursor-no-drop' : ''
             ]" @drop.prevent="onDrop" @dragover.prevent="onDragOver" @dragenter.prevent="onDragEnter"
@@ -637,12 +637,12 @@ export default {
             this.closeFileExistsDialog();
         },
         getClassButton(name) {
-            let cssStyle = "flex h-12 w-32 text-sm py-2 transition-colors font-medium border-r last:border-r-0 justify-center items-center";
+            let cssStyle;
 
             if(this.currentTab === name) {
-                cssStyle += ' bg-blue-400 text-white';
+                cssStyle = ' !bg-NcBlue/30';
             } else {
-                cssStyle += ' hover:bg-gray-100 text-gray-700 bg-gray-300';
+                cssStyle = '';
             }
 
             return cssStyle;
