@@ -11,6 +11,10 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\AppFramework\Http\DataResponse;
+use OCP\IRequest;
+use OCP\IResponse;
+use OCP\AppFramework\Http\JSONResponse;
 
 /**
  * @psalm-suppress UnusedClass
@@ -24,6 +28,20 @@ class PageController extends Controller {
 		return new TemplateResponse(
 			Application::APP_ID,
 			'index',
+		);
+	}
+
+	#[NoCSRFRequired]
+	#[NoAdminRequired]
+	#[FrontpageRoute(verb: 'POST', url: '/zipDeposit')]
+	public function post($archiveUrl, $token) {
+		$request = $this->request;
+		$parameters = array('archiveUrl' => $archiveUrl, 'token' => $token);
+	
+		return new TemplateResponse(
+			Application::APP_ID,
+			'index',
+			$parameters
 		);
 	}
 }
