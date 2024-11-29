@@ -43,6 +43,8 @@ export default {
 		},
 		toggleDragEnded(){
 			this.dragEnded = !this.dragEnded;
+			this.zip = null;
+			this.sharedFile = null;
 		},
 	},
 }

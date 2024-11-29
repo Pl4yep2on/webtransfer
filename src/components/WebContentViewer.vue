@@ -5,8 +5,9 @@
             <div class="w-1/6 px-4 py-2 text-gray-500 font-semibold">Taille</div>
         </div>
 
+        <!-- Fichier .zip -->
         <div class="flex h-16 hover:bg-NcGray items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300" v-if="!isLoading && zipContent.length !== 0"
-            draggable="true" @dragstart="dragZip()">
+            draggable="true" @dragstart="dragZip()" @dragend="onDragEnd">
             <template>
                 <div class="flex items-center justify-center cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-10 h-10 ">
@@ -23,6 +24,7 @@
             </div>
         </div>
 
+        <!-- Archive depliee -->
         <div v-if="!isLoading && zipContent.length !== 0" class="overflow-y-auto h-full">
             <div v-for="(file, index) in sortedFiles" :key="file.fullPath" class="flex flex-col">
 

@@ -399,7 +399,6 @@ export default {
         },
         onDragEnd() {
             this.isDragging = false;
-            console.log('feur2')
         },
         async onDrop(event) {
             event.preventDefault();
@@ -411,7 +410,6 @@ export default {
                     const zip = this.zip;
                     console.log(file);
                     console.log(zip);
-
 
                     if (!file && !zip) return;
 
@@ -457,7 +455,6 @@ export default {
                 this.newElemName = '';
             }
             this.isDroppable = true;
-            console.log('feur')
         },
         async moveFilesOfFolder(folder, parentPath) {
             await this.createFolder(folder, parentPath + '/');
