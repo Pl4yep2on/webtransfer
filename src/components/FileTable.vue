@@ -254,7 +254,7 @@ export default {
             try {
                 const client = getClient();
                 let directoryItems;
-                if (this.currentTab === 'default'){
+                if (this.currentTab === 'default' || (this.currentTab === 'favorites' && this.current_dir !== '/')){
                     directoryItems = await client.getDirectoryContents(this.root_path + this.current_dir);
                 }
                 else if(this.currentTab === 'favorites'){
@@ -264,6 +264,7 @@ export default {
 
                 this.files = directoryItems.map(file => ({
                     basename: file.basename,
+                    filename:file.filename,
                     size: file.size,
                     href: client.getFileDownloadLink(file.filename),
                     type: file.type
@@ -313,7 +314,19 @@ export default {
         async handleClickElem(file) {
             if (this.isTransfering) return;
             if (file.type === 'directory') {
-                this.current_dir = this.current_dir === '/' ? '/' + file.basename : this.current_dir + '/' + file.basename;
+                if(this.currentTab === 'default'){
+                    this.current_dir = this.current_dir === '/' ? '/' + file.basename : this.current_dir + '/' + file.basename;
+                }
+                else{
+                    let path = file.filename;
+                    let pathSplited = path.split('/');
+                    let result = pathSplited.slice(3);
+                    let dir = '';
+                    result.forEach(element => {
+                        dir += '/' + element
+                    });
+                    this.current_dir = dir;
+                }
                 this.breadcrumbParts = this.getBreadcrumbParts()
                 await this.fetchFiles();
             } else {
@@ -596,9 +609,10 @@ export default {
             if (names.initialFileName !== names.newFileName) {
                 const client = getClient()
                 try {
-                    const oldName = this.root_path + this.current_dir + names.initialFileName;
-                    const newName = this.root_path + this.current_dir + names.newFileName;
+                    const oldName = this.root_path + this.current_dir + '/' + names.initialFileName;
+                    const newName = this.root_path + this.current_dir + '/' + names.newFileName;
                     let alreadyExists = await this.elemtAlreadyExists(newName);
+                    console.log(names)
                     if (!alreadyExists) {
                         await client.moveFile(oldName, newName);
                     }
