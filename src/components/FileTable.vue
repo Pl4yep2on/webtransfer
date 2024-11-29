@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="h-full">
         <!-- Boutons pour fichiers :thumbsup: -->
         <div class="flex flex-row gap-2 p-2">
             <div
