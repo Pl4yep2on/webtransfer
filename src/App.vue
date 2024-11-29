@@ -5,12 +5,12 @@
 			<!-- Première section -->
 			<div 
 				class="w-full sm:w-1/3 max-sm:h-2/5 p-4 sm:m-6 sm:mr-0 rounded-xl bg-NcBlack/40">
-				<WebContentViewer @zip-upload="handleZipUpload" @file-upload="handleFileUpload" @dragEnded="toggleDragEnded" zipUrl="http://localhost:8000/dummyZip.zip"/>
+				<WebContentViewer :translate="translate" @zip-upload="handleZipUpload" @file-upload="handleFileUpload" @dragEnded="toggleDragEnded" zipUrl="http://localhost:8000/dummyZip.zip"/>
 			</div>
 			<!-- Deuxième section -->
 			<div 
 				class="w-full sm:w-2/3 max-sm:h-3/5 p-4 sm:m-6 sm:ml-4 bg-NcBlack rounded-xl">
-				<FileTable :file="sharedFile" :zip="zip" :dragEnded="dragEnded" @dragEnded="toggleDragEnded"/>
+				<FileTable :file="sharedFile" :zip="zip" :dragEnded="dragEnded" :translate="translate" @dragEnded="toggleDragEnded"/>
 			</div>
 		</div>
 	</div>
@@ -20,6 +20,16 @@
 import FileTable from './components/FileTable.vue';
 import WebContentViewer from './components/WebContentViewer.vue';
 import './output.css';
+
+// Traduction
+import i18next from "i18next";
+import file from "./assets/traduction.json";
+
+await i18next.init({
+	lng: navigator.language.split('-')[0],
+	fallbackLng: "en",
+	resources: file,
+});
 
 export default {
 	name: 'App',
@@ -46,6 +56,9 @@ export default {
 			this.zip = null;
 			this.sharedFile = null;
 		},
+		translate(id) {
+            return i18next.t(id)
+        },
 	},
 }
 </script>

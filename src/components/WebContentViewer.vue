@@ -1,8 +1,8 @@
 <template>
     <div class="flex flex-col h-full w-full border">
         <div class="flex h-12 items-center border-b border-gray-300">
-            <div class="w-5/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">Nom</div>
-            <div class="w-1/6 px-4 py-2 text-gray-500 font-semibold">Taille</div>
+            <div class="w-5/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">{{ translate('name') }}</div>
+            <div class="w-1/6 px-4 py-2 text-gray-500 font-semibold">{{ translate('size') }}</div>
         </div>
 
         <!-- Fichier .zip -->
@@ -85,7 +85,7 @@
             <component :is="Loading" class="text-white w-24 h-24 animate-spin" :size="40" />
         </div>
         <div v-if="!isLoading && zipContent.length === 0" class="flex h-full items-center justify-center">
-            <span class="text-gray-500">Aucun contenu à afficher</span>
+            <span class="text-gray-500">{{ translate('no.content') }}</span>
         </div>
     </div>
 </template>
@@ -119,6 +119,10 @@ export default {
             type: String,
             required: true,
         },
+        translate: {
+            type: Function,
+            Required: true,
+        }
     },
     computed: {
         sortedFiles() {

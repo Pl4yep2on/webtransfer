@@ -6,13 +6,13 @@
                 :class="getClassButton('default')"
                 @click="changeTab('default')"
             >
-                Tous les fichiers
+                {{ translate('all.files') }}
             </button>
             <button 
                 :class="getClassButton('favorites')"
                 @click="changeTab('favorites')"
             >
-                Favoris
+                {{ translate('favorites') }}
             </button>
         </div>
 
@@ -30,7 +30,7 @@
                             <button v-if="!isTransfering" @click="toggleAddFilePopup"
                                 class="flex items-center space-x-2 bg-blue-100 text-blue-600 font-medium px-4 py-2 rounded-md hover:bg-blue-200 transition">
                                 <Plus :size="20" />
-                                <span>Nouveau</span>
+                                <span>{{translate('new')}}</span>
                             </button>
                             <div v-else>
                                 <ProgressBar :value="transferProgress" :color="transferStatus" />
@@ -45,17 +45,17 @@
             <div v-if="isAddFilePopupVisible"
                 class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50">
                 <div class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
-                    <h2 class="text-lg font-semibold mb-4">Créer un nouveau fichier</h2>
-                    <input v-model="newFileName" type="text" placeholder="Nom du fichier"
+                    <h2 class="text-lg font-semibold mb-4">{{ translate('create.new.file') }}</h2>
+                    <input v-model="newFileName" type="text" :placeholder="translate('name.of.file')"
                         class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     <div class="flex justify-end mt-4 space-x-2">
-                        <button @click="toggleAddFilePopup"
-                            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">
-                            Annuler
-                        </button>
                         <button @click="createNewFile"
                             class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
-                            Créer
+                            {{translate('create')}}
+                        </button>
+                        <button @click="toggleAddFilePopup"
+                            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">
+                            {{translate('cancel')}}
                         </button>
                     </div>
                 </div>
@@ -63,10 +63,10 @@
 
             <!-- En-tête -->
             <div class="flex h-12 items-center border-b border-gray-300">
-                <div class="w-7/12 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">Nom</div>
-                <div class="w-2/12 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">Type</div>
-                <div class="w-2/12 px-4 py-2 text-gray-500 font-semibold">Taille</div>
-                <div class="w-1/12 px-4 py-2 text-gray-500 font-semibold">Options</div>
+                <div class="w-7/12 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">{{ translate('name') }}</div>
+                <div class="w-2/12 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">{{ translate('type') }}</div>
+                <div class="w-2/12 px-4 py-2 text-gray-500 font-semibold">{{ translate('size') }}</div>
+                <div class="w-1/12 px-4 py-2 text-gray-500 font-semibold">{{ translate('options') }}</div>
             </div>
 
             <!-- Contenu -->
@@ -130,23 +130,24 @@
                                 <template #icon>
                                     <Delete :size="20" />
                                 </template>
-                                Supprimer
+                                {{ translate('delete') }}
                             </NcActionButton>
                             <NcActionButton @click="editElem(file)">
                                 <template #icon>
                                     <Pencil :size="20" />
                                 </template>
-                                Editer
+                                {{ translate('edit') }}
                             </NcActionButton>
                         </NcActions>
                     </div>
                 </div>
             </div>
 
-            <EditFileName v-if="!editDialogDisabled" :initialFileName="initialFileName" :isDirectory="isDirectory"
+            <EditFileName v-if="!editDialogDisabled" :initialFileName="initialFileName" :isDirectory="isDirectory" :translate="translate"
                 @update="updateFileName" @close="closeEditDialog">
             </EditFileName>
-            <FileExistsDialog v-if="!fileExistDialogDisabled" :fileName="initialFileName" :isDirectory="isDirectory" @overwrite="setOverwrite" @rename="setRename" @cancel="cancelDrop">
+            <FileExistsDialog v-if="!fileExistDialogDisabled" :fileName="initialFileName" :isDirectory="isDirectory" :translate="translate"
+                @overwrite="setOverwrite" @rename="setRename" @cancel="cancelDrop">
             </FileExistsDialog>
         </div>
     </div>
@@ -169,10 +170,6 @@ import FileExistsDialog from './FileExistsDialog.vue';
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Delete from 'vue-material-design-icons/Delete.vue';
 import Pencil from 'vue-material-design-icons/Pencil.vue'
-
-// Traduction
-import i18next from "i18next";
-import file from "../assets/traduction.json";
 
 export default {
     name: 'FileTable',
@@ -199,6 +196,10 @@ export default {
         },
         dragEnded: {
             type: Boolean,
+            Required: true,
+        },
+        translate: {
+            type: Function,
             Required: true,
         }
     },
@@ -240,14 +241,6 @@ export default {
     async mounted() {
         await this.fetchFiles();
         this.breadcrumbParts = this.getBreadcrumbParts();
-
-        await i18next.init({
-            lng: navigator.language.split('-')[0],
-            fallbackLng: "en",
-            resources: file,
-        });
-        
-        console.log(i18next.t('welcome'))
     },
     methods: {
         async changeTab(name) {
@@ -374,7 +367,7 @@ export default {
                     await this.fetchFiles();
                 }
                 else {
-                    alert(`Vous ne pouvez pas creer le dossier : ${this.newFileName} car un autre dossier porte deja le meme nom.`);
+                    alert(this.translate("cant.create.folder") + this.newFileName + this.translate('already.exists'));
                 }
             } catch (error) {
                 console.error('Erreur lors de la création du fichier :', error);
@@ -624,7 +617,7 @@ export default {
                         await client.moveFile(oldName, newName);
                     }
                     else {
-                        alert(`Vous ne pouvez pas renommez le fichier/dossier : ${names.newFileName} car un autre fichier/dossier porte deja le meme nom.`);
+                        alert(this.translate('cant.rename') + names.newFileName + this.translate('already.exists'));
                     }
                 }
                 catch (error) {
@@ -667,9 +660,6 @@ export default {
             }
 
             return cssStyle;
-        },
-        translate(id) {
-            return i18next.t(id)
         },
         async sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
