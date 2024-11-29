@@ -152,8 +152,6 @@
     </div>
 </template>
 
-
-
 <script>
 // NextCloud Components
 import { getClient, getRootPath, getFavoriteNodes } from '@nextcloud/files/dav';
@@ -171,6 +169,10 @@ import FileExistsDialog from './FileExistsDialog.vue';
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Delete from 'vue-material-design-icons/Delete.vue';
 import Pencil from 'vue-material-design-icons/Pencil.vue'
+
+// Traduction
+import i18next from "i18next";
+import file from "../assets/traduction.json";
 
 export default {
     name: 'FileTable',
@@ -211,6 +213,7 @@ export default {
     },
     data() {
         return {
+            trad: null,
             files: [], // Liste des fichiers et dossiers récupérés
             root_path: getRootPath(),
             current_dir: '/',
@@ -237,6 +240,14 @@ export default {
     async mounted() {
         await this.fetchFiles();
         this.breadcrumbParts = this.getBreadcrumbParts();
+
+        await i18next.init({
+            lng: navigator.language.split('-')[0],
+            fallbackLng: "en",
+            resources: file,
+        });
+        
+        console.log(i18next.t('welcome'))
     },
     methods: {
         async changeTab(name) {
@@ -656,6 +667,9 @@ export default {
             }
 
             return cssStyle;
+        },
+        translate(id) {
+            return i18next.t(id)
         },
         async sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
