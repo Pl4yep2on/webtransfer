@@ -27,7 +27,7 @@
                     </NcBreadcrumb>
                     <template #actions>
                         <div class="flex items-center ml-2">
-                            <button v-if="!isTransfering" @click="toggleAddFilePopup"
+                            <button v-if="!isTransfering" @click="toggleAddFilePopup" :disabled="currentTab === 'favorites' && current_dir === '/'"
                                 class="flex items-center space-x-2 bg-blue-100 text-blue-600 font-medium px-4 py-2 rounded-md hover:bg-blue-200 transition">
                                 <Plus :size="20" />
                                 <span>{{translate('new')}}</span>
