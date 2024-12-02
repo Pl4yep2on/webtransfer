@@ -126,13 +126,13 @@
                     <!-- Options -->
                     <div class="w-1/12 px-4 py-2" @click.stop>
                         <NcActions>
-                            <NcActionButton @click="deleteElem(file)">
+                            <NcActionButton @click="deleteElem(file)" :closeAfterClick="true">
                                 <template #icon>
                                     <Delete :size="20" />
                                 </template>
                                 {{ translate('delete') }}
                             </NcActionButton>
-                            <NcActionButton @click="editElem(file)">
+                            <NcActionButton @click="editElem(file)" :closeAfterClick="true">
                                 <template #icon>
                                     <Pencil :size="20" />
                                 </template>
