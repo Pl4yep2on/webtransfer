@@ -1,6 +1,6 @@
 <template>
     <div class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50">
-        <div v-if="!displayRename && !displayOverwrite" class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
+        <div v-if="!displayRename && !displayOverwrite" class="dark:bg-NcBlack bg-white rounded-lg shadow-lg p-6 w-96">
             <h2 class="text-lg font-semibold mb-4">{{ translate('file.already.exist') }}</h2>
             <p>{{ translate('file.pt.1') }}{{ fileName }}{{ translate('file.pt.2') }}</p>
             <div class="flex justify-end mt-4 space-x-2">
@@ -11,7 +11,7 @@
         </div>
 
         <!-- Renommer le fichier -->
-        <div v-if="displayRename" class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
+        <div v-if="displayRename" class="dark:bg-NcBlack bg-white rounded-lg shadow-lg p-6 w-96">
             <h2 class="text-lg font-semibold mb-4">{{ translate('change.file.name') }}</h2>
             <input
                 type="text"
@@ -28,7 +28,7 @@
         </div>
 
         <!-- Appliquer l'ecrasement a tous -->
-        <div v-if="displayOverwrite" class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
+        <div v-if="displayOverwrite" class="dark:bg-NcBlack bg-white rounded-lg shadow-lg p-6 w-96">
             <h2 class="text-lg font-semibold mb-4">{{ translate('you.are.going.to.erase.file.folder') }}</h2>
             <div class="flex items-center content-evenly">
                 <input type="checkbox" v-model="forAll" />

@@ -44,7 +44,7 @@
             <!-- Popup pour la création de fichier -->
             <div v-if="isAddFilePopupVisible"
                 class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50">
-                <div class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
+                <div class="dark:bg-NcBlack bg-white rounded-lg shadow-lg p-6 w-96">
                     <h2 class="text-lg font-semibold mb-4">{{ translate('create.new.file') }}</h2>
                     <input v-model="newFileName" type="text" :placeholder="translate('name.of.file')"
                         class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
@@ -78,12 +78,12 @@
                 @dragleave.prevent="onDragLeave($event)" @dragend="onDragEnd">
 
                 <div v-for="file in files" :key="file.filename"
-                    class="flex h-16 items-center hover:bg-NcGray rounded-lg border-b last:border-b-0 border-gray-300"
+                    class="flex h-16 items-center dark:hover:bg-NcGray hover:bg-NcWhite rounded-lg border-b last:border-b-0 border-gray-300 cursor-pointer"
                     @click="handleClickElem(file)">
 
                     <!-- Nom -->
-                    <div class="w-7/12 flex items-center px-4 py-2 border-r border-gray-300">
-                        <div class="w-12 h-12 flex items-center justify-center">
+                    <div class="w-7/12 flex items-center px-4 py-2 border-r border-gray-300 cursor-pointer">
+                        <div class="w-12 h-12 flex items-center justify-cente cursor-pointer">
                             <template v-if="file.type === 'directory'">
                                 <svg fill="currentColor" viewBox="0 0 24 24" class="text-NcBlue w-10 h-10 ">
                                     <path
@@ -92,7 +92,7 @@
                                 </svg>
                             </template>
                             <template v-if="file.type === 'file' && file.basename.split('.').pop() !== 'zip'">
-                                <div :class="['flex items-center justify-center']">
+                                <div :class="['flex items-center justify-center cursor-pointer']">
                                     <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
                                         class="w-10 h-10"
                                         style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2">
@@ -114,12 +114,12 @@
                     </div>
 
                     <!-- Type -->
-                    <div class="w-2/12 px-4 py-2 border-r border-gray-300">
+                    <div class="w-2/12 px-4 py-2 border-r border-gray-300 cursor-pointer">
                         {{ file.type === 'directory' ? 'Dossier' : 'Fichier' }}
                     </div>
 
                     <!-- Taille -->
-                    <div class="w-2/12 px-4 py-2">
+                    <div class="w-2/12 px-4 py-2 cursor-pointer">
                         {{ file.type === 'directory' ? '-' : formatFileSize(file.size) }}
                     </div>
 
