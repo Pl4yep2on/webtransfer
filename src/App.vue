@@ -5,7 +5,7 @@
 			<!-- Première section -->
 			<div 
 				class="w-full sm:w-1/3 max-sm:h-2/5 p-4 sm:m-6 sm:mr-0 rounded-xl dark:bg-NcBlack/40 bg-white/80">
-				<WebContentViewer :translate="translate" @zip-upload="handleZipUpload" @file-upload="handleFileUpload" @dragEnded="toggleDragEnded" zipUrl="http://localhost:8000/dummyZip.zip"/>
+				<WebContentViewer :translate="translate" @zip-upload="handleZipUpload" @file-upload="handleFileUpload" @dragEnded="toggleDragEnded" :zipUrl="zipUrl"/>
 			</div>
 			<!-- Deuxième section -->
 			<div 
@@ -38,7 +38,11 @@ export default {
 		WebContentViewer  
 	},
 	data() {
+		console.log('feur')
+		let zipUrl = document.getElementById('archiveInfos').getAttribute('dataarchiveurl');
+		console.log(zipUrl)
 		return {
+			zipUrl,
 			sharedFile: null,
 			zip: null,
 			dragEnded: false,
