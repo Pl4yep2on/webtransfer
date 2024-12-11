@@ -1,7 +1,8 @@
 <template>
     <div class="flex flex-col h-full w-full border">
         <div class="flex h-12 items-center border-b border-gray-300">
-            <div class="w-5/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">{{ translate('name') }}</div>
+            <div class="w-5/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">{{ translate('name') }}
+            </div>
             <div class="w-1/6 px-4 py-2 text-gray-500 font-semibold">{{ translate('size') }}</div>
         </div>
         <!-- Archive depliee -->
@@ -9,10 +10,19 @@
             <div v-for="(file, index) in sortedFiles" :key="file.fullPath" class="flex flex-col">
 
                 <div class="flex h-16 dark:hover:bg-NcGray hover:bg-NcWhite items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
-                    :style="{ 
+                    :style="{
                         'padding-left': `${0.5 * (file.depth + 1)}rem`
-                    }"
-                    @click="toggleFolder(file)" v-if="file.isDirectory" draggable="true" @dragstart="onDragStart(file)" @dragend="onDragEnd">
+                    }" @click="toggleFolder(file)" v-if="file.isDirectory" draggable="true"
+                    @dragstart="onDragStart(file)" @dragend="onDragEnd">
+
+                    <div class="flex items-center">
+                        <input type="checkbox" id="checkbox-file"
+                            class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out cursor-pointer"
+                            @change="handleCheckboxChange(file, $event)" 
+                            :checked="isChecked(file)">
+                    </div>
+
+
                     <div class="w-5/6 flex items-center py-2 border-r border-gray-300 cursor-pointer">
                         <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
                             <template>
@@ -36,10 +46,16 @@
                 </div>
 
                 <div class="flex h-16 dark:hover:bg-NcGray hover:bg-NcWhite items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
-                    :style="{ 
+                    :style="{
                         'padding-left': `${0.5 * (file.depth + 1)}rem`
-                    }"
-                    v-else draggable="true" @dragstart="onDragStart(file, $event)">
+                    }" v-else draggable="true" @dragstart="onDragStart(file, $event)">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="checkbox-file"
+                            class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out cursor-pointer"
+                            @change="handleCheckboxChange(file, $event)" 
+                            :checked="isChecked(file)">
+                    </div>
+
                     <template>
                         <div class="flex items-center justify-center cursor-pointer">
                             <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
@@ -76,7 +92,6 @@ import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue';
 import ChevronDownIcon from 'vue-material-design-icons/ChevronDown.vue';
 import Loading from 'vue-material-design-icons/Loading.vue';
 import { ref } from 'vue';
-import path from 'path';
 
 export default {
     name: 'WebContentViewer',
@@ -92,6 +107,7 @@ export default {
             Loading,
             zipName: '',
             zipSize: 0,
+            cochedFiles: [],
         };
     },
     props: {
@@ -220,7 +236,59 @@ export default {
             event.preventDefault();
             this.$emit('dragEnded');
         },
+        handleCheckboxChange(file, event) {
+            if (event.target.checked) {
+                this.cocheFile(file);
 
+                // Si c'est un dossier, cocher récursivement tous les fichiers enfants
+                if (file.isDirectory && file.children) {
+                    this.cocheFilesRecursively(file.children);
+                }
+            } else {
+                this.decocheFile(file);
+
+                // Si c'est un dossier, décocher récursivement tous les fichiers enfants
+                if (file.isDirectory && file.children) {
+                    this.decocheFilesRecursively(file.children);
+                }
+            }
+        },
+        getFullPath(file) {
+            if (!file.parentPath || file.parentPath === '') {
+                return [file.name];
+            } else {
+                return `${file.parentPath}/${file.name}`;
+            }
+        },
+        cocheFile(file) {
+            if (!this.cochedFiles.some(f => this.getFullPath(f) === this.getFullPath(file))) {
+                this.cochedFiles.push(file);
+                console.log(this.cochedFiles);
+            }
+        },
+        decocheFile(file) {
+            this.cochedFiles = this.cochedFiles.filter(f => this.getFullPath(f) !== this.getFullPath(file));
+            console.log(this.cochedFiles);
+        },
+        cocheFilesRecursively(files) {
+            files.forEach(file => {
+                this.cocheFile(file);
+                if (file.isDirectory && file.children) {
+                    this.cocheFilesRecursively(file.children);
+                }
+            });
+        },
+        decocheFilesRecursively(files) {
+            files.forEach(file => {
+                this.decocheFile(file);
+                if (file.isDirectory && file.children) {
+                    this.decocheFilesRecursively(file.children);
+                }
+            });
+        },
+        isChecked(file) {
+            return this.cochedFiles.some(f => this.getFullPath(f) === this.getFullPath(file));
+        },
         formatFileSize(size) {
             if (size < 1024) return `${size} B`;
             if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`;
@@ -234,40 +302,49 @@ export default {
         },
         async dragZip() {
             try {
-                const zip = {name: this.zipName, url: this.zipUrl};
+                const zip = { name: this.zipName, url: this.zipUrl };
                 this.$emit('zip-upload', zip);
             } catch (error) {
                 console.error('Erreur lors du drag du ZIP :', error);
             }
         },
-        async onDragStart(file) {
+        async onDragStart(file, event) {
+            // Si des fichiers sont cochés, utiliser cette liste
+            if (this.cochedFiles.length > 0) {
+                try {
+                    console.log('Fichiers cochés :', this.cochedFiles);
+                } catch (error) {
+                    console.error('Erreur lors du drag start avec fichiers cochés :', error);
+                }
+            } else {
+                // Logique existante pour un seul fichier/dossier
+                const getFilesFromFolder = (folder) => {
+                    const files = [];
+                    if (!folder.children || folder.children.length === 0) return files;
 
-            const getFilesFromFolder = (folder) => {
-                const files = [];
-                if (!folder.children || folder.children.length === 0) return files;
-
-                for (let i = 0; i < folder.children.length; i++) {
-                    const child = folder.children[i];
-                    if (child.isDirectory) {
-                        files.push(...getFilesFromFolder(child));
-                    } else {
-                        files.push(child);
+                    for (let i = 0; i < folder.children.length; i++) {
+                        const child = folder.children[i];
+                        if (child.isDirectory) {
+                            files.push(...getFilesFromFolder(child));
+                        } else {
+                            files.push(child);
+                        }
                     }
-                }
-                return files;
-            };
+                    return files;
+                };
 
-            try {
-                if (file.isDirectory) {
-                    const files = getFilesFromFolder(file);
-                    const filesToUnzip = files.map(file => file.unzip);
-                    await Promise.all(filesToUnzip);
-                } else {
-                    await file.unzip;
+                try {
+                    if (file.isDirectory) {
+                        const files = getFilesFromFolder(file);
+                        const filesToUnzip = files.map(file => file.unzip);
+                        await Promise.all(filesToUnzip);
+                    } else {
+                        await file.unzip;
+                    }
+                    this.$emit('file-upload', file);
+                } catch (error) {
+                    console.error('Erreur lors du drag start :', error);
                 }
-                this.$emit('file-upload', file);
-            } catch (error) {
-                console.error('Erreur lors du drag start :', error);
             }
         },
     },
