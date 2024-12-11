@@ -4,26 +4,6 @@
             <div class="w-5/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">{{ translate('name') }}</div>
             <div class="w-1/6 px-4 py-2 text-gray-500 font-semibold">{{ translate('size') }}</div>
         </div>
-
-        <!-- Fichier .zip -->
-        <div class="flex h-16 dark:hover:bg-NcGray hover:bg-NcWhite items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300" v-if="!isLoading && zipContent.length !== 0"
-            draggable="true" @dragstart="dragZip()" @dragend="onDragEnd">
-            <template>
-                <div class="flex items-center justify-center cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-10 h-10 ">
-                        <path fill="#969696" d="M5.12,5H18.87L17.93,4H5.93L5.12,5M20.54,5.23C20.83,5.57 21,6 21,6.5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V6.5C3,6 3.17,5.57 3.46,5.23L4.84,3.55C5.12,3.21 5.53,3 6,3H18C18.47,3 18.88,3.21 19.15,3.55L20.54,5.23M6,18H12V15H6V18Z"/>
-                    </svg>
-                </div>
-            </template>
-            <div class="w-5/6 flex items-center px-4 py-2  cursor-pointer">
-                <div class="truncate max-sm:max-w-32 max-w-64 cursor-pointer">{{ zipName }}</div>
-
-            </div>
-            <div class="w-1/6 py-2 cursor-pointer">
-                {{ formatFileSize(zipSize) }}
-            </div>
-        </div>
-
         <!-- Archive depliee -->
         <div v-if="!isLoading && zipContent.length !== 0" class="overflow-y-auto h-full">
             <div v-for="(file, index) in sortedFiles" :key="file.fullPath" class="flex flex-col">
