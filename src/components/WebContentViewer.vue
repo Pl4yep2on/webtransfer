@@ -321,11 +321,14 @@ export default {
                 }
                 return files;
             };
-            // Si des fichiers sont cochés, utiliser cette liste
+            
             if (this.cochedFiles.length > 0) {
+
                 const folder = {
+                    // Si des fichiers sont cochés, utiliser cette liste
                     name: file.name,
                     isDirectory: true,
+                    isList: true,
                     children: this.cochedFiles,
                     unzip: Promise.all(this.cochedFiles.map(file => file.unzip))
                 };
@@ -340,8 +343,6 @@ export default {
 
             } else {
                 // Logique existante pour un seul fichier/dossier
-
-
                 try {
                     if (file.isDirectory) {
                         const files = getFilesFromFolder(file);
