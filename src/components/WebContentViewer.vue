@@ -252,7 +252,7 @@ export default {
         },
         getFullPath(file) {
             if (!file.parentPath || file.parentPath === '') {
-                return [file.name];
+                return file.name;
             } else {
                 return `${file.parentPath}/${file.name}`;
             }
