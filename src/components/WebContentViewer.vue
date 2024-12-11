@@ -72,7 +72,6 @@
                         {{ formatFileSize(file.size) }}
                     </div>
                 </div>
-
             </div>
         </div>
         <div v-if="isLoading" class="flex h-full items-center justify-center">
@@ -333,9 +332,7 @@ export default {
                     unzip: Promise.all(this.cochedFiles.map(file => file.unzip))
                 };
                 try {
-                    const files = getFilesFromFolder(folder);
-                    const filesToUnzip = files.map(file => file.unzip);
-                    await Promise.all(filesToUnzip);
+                    await folder.unzip;
                     this.$emit('file-upload', folder);
                 } catch (error) {
                     console.error('Erreur lors du drag start :', error);
