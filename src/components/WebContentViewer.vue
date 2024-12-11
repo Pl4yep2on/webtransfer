@@ -1,5 +1,16 @@
 <template>
     <div class="flex flex-col h-full w-full border">
+        <!-- Breadcrumb -->
+        <div class="flex flex-row mt-1 ml-3 items-start container">
+            <NcBreadcrumbs class="max-h-8">
+                <NcBreadcrumb name="Home" title="Title of the Home folder" @click="handleClickBreadcrumb(-1)">
+                </NcBreadcrumb>
+                <NcBreadcrumb v-if="getBreadcrumbParts().length > 0" v-for="(part, index) in breadcrumbParts"
+                    :key="index" :name="part" @click="handleClickBreadcrumb(index)">
+                </NcBreadcrumb>
+            </NcBreadcrumbs>
+        </div>
+
         <div class="flex h-12 items-center border-b border-gray-300">
             <div class="w-5/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">{{ translate('name') }}</div>
             <div class="w-1/6 px-4 py-2 text-gray-500 font-semibold">{{ translate('size') }}</div>
@@ -29,10 +40,7 @@
             <div v-for="(file, index) in sortedFiles" :key="file.fullPath" class="flex flex-col">
 
                 <div class="flex h-16 dark:hover:bg-NcGray hover:bg-NcWhite items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
-                    :style="{ 
-                        'padding-left': `${0.5 * (file.depth + 1)}rem`
-                    }"
-                    @click="toggleFolder(file)" v-if="file.isDirectory" draggable="true" @dragstart="onDragStart(file)" @dragend="onDragEnd">
+                    @click="toggleFolder(file)" v-if="file.isDirectory && isVisible(file)" draggable="true" @dragstart="onDragStart(file)" @dragend="onDragEnd">
                     <div class="w-5/6 flex items-center py-2 border-r border-gray-300 cursor-pointer">
                         <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
                             <template>
@@ -44,11 +52,6 @@
                             </template>
                         </div>
                         <div class="w-4/6 flex items-center py-2 border-r border-gray-300 cursor-pointer">
-                            <!-- Icône dynamique pour plié/déplié -->
-                            <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
-                                <component :is="folderMap[file.fullPath] ? ChevronDownIcon : ChevronRightIcon"
-                                    class="text-NcBlue w-6 h-6" />
-                            </div>
                             <span class="ml-2 truncate cursor-pointer">{{ file.name }}</span>
                         </div>
                     </div>
@@ -56,10 +59,7 @@
                 </div>
 
                 <div class="flex h-16 dark:hover:bg-NcGray hover:bg-NcWhite items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
-                    :style="{ 
-                        'padding-left': `${0.5 * (file.depth + 1)}rem`
-                    }"
-                    v-else draggable="true" @dragstart="onDragStart(file, $event)">
+                    v-else-if="isVisible(file)" draggable="true" @dragstart="onDragStart(file, $event)">
                     <template>
                         <div class="flex items-center justify-center cursor-pointer">
                             <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
@@ -91,6 +91,8 @@
 </template>
 
 <script>
+import NcBreadcrumbs from '@nextcloud/vue/dist/Components/NcBreadcrumbs.js';
+import NcBreadcrumb from '@nextcloud/vue/dist/Components/NcBreadcrumb.js';
 import JSZip from 'jszip';
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue';
 import ChevronDownIcon from 'vue-material-design-icons/ChevronDown.vue';
@@ -100,6 +102,10 @@ import path from 'path';
 
 export default {
     name: 'WebContentViewer',
+    components:{
+        NcBreadcrumbs,
+        NcBreadcrumb
+    },
     data() {
         return {
             zipContent: [],
@@ -112,6 +118,8 @@ export default {
             Loading,
             zipName: '',
             zipSize: 0,
+            currentDir: '',
+            breadcrumbParts: [],
         };
     },
     props: {
@@ -146,7 +154,6 @@ export default {
 
                 return flatList.sort((a, b) => a.fullPath.localeCompare(b.fullPath));
             };
-
 
             return flattenAndSort(this.zipContent);
         },
@@ -240,7 +247,6 @@ export default {
             event.preventDefault();
             this.$emit('dragEnded');
         },
-
         formatFileSize(size) {
             if (size < 1024) return `${size} B`;
             if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`;
@@ -250,7 +256,21 @@ export default {
         toggleFolder(file) {
             if (!file.isDirectory) return;
             const currentState = this.folderMap[file.fullPath];
+            const parentPath = file.parentPath;
+            
+            if(!currentState) {
+                this.currentDir = file.fullPath;
+            }
+            else {
+                this.currentDir = parentPath;
+            }
             this.$set(this.folderMap, file.fullPath, !currentState);
+
+            if(parentPath !== '') {
+                const parentState = this.folderMap[parentPath];
+                this.$set(this.folderMap, parentPath, !parentState);
+            }
+            this.breadcrumbParts = this.getBreadcrumbParts()
         },
         async dragZip() {
             try {
@@ -261,7 +281,6 @@ export default {
             }
         },
         async onDragStart(file) {
-
             const getFilesFromFolder = (folder) => {
                 const files = [];
                 if (!folder.children || folder.children.length === 0) return files;
@@ -289,6 +308,44 @@ export default {
             } catch (error) {
                 console.error('Erreur lors du drag start :', error);
             }
+        },
+        isVisible(file){
+            let parentPath = file.parentPath;
+            if(this.currentDir === parentPath){
+                return true;
+            }
+            else{
+                return false;
+            }
+        },
+        getBreadcrumbParts() {
+            // Si le currentDir est un simple '/', on le renvoie sous forme de tableau vide.
+            if (this.currentDir === '') return [];
+            return this.currentDir.split('/').filter(part => part);
+        },
+        generateCrumbHref(index) {
+            const parts = this.breadcrumbParts.slice(0, index + 1);
+            return parts.join('/');
+        },
+        handleClickBreadcrumb(index) {
+            if (this.isTransfering) return;
+            let dir = '';
+            if (index >= -1) {
+                dir = this.generateCrumbHref(index);
+            }
+            this.currentDir = dir;
+            this.breadcrumbParts = this.getBreadcrumbParts();
+            //console.log('cur : ', this.currentDir)
+            let file = {
+                fullPath : dir,
+                parentPath: this.generateCrumbHref(index -1),
+                isDirectory: true,
+            };
+
+            Object.keys(this.folderMap).forEach(key => {
+                this.folderMap[key] = false;
+            });
+            this.toggleFolder(file);
         },
     },
 };
