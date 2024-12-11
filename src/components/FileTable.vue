@@ -444,14 +444,20 @@ export default {
         async moveListOfFiles(files) {
             for (const file of files.children) {
                 this.transferProgress += 100 / files.children.length;
+                let listOfFolder = [];
                 if (file.isDirectory) {
                     //just create the folder
                     await this.createFolder(file, file.parentPath + '/');
+                    listOfFolder.push(file.parentPath + '/' + file.name);
                 } else {
                     if (file.content && typeof file.content.arrayBuffer === 'function') {
                         file.content = await file.content.arrayBuffer();
                     }
-                    await this.moveFileToTarget(file, file.parentPath + '/');
+                    if (listOfFolder.includes(file.parentPath)) {
+                        await this.moveFileToTarget(file, file.parentPath + '/', file.name);
+                    } else {
+                        await this.createFolder(file, '');
+                    }
                 }
             }
         },
