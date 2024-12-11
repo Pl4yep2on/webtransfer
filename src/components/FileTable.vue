@@ -443,6 +443,7 @@ export default {
         },
         async moveListOfFiles(files) {
             for (const file of files.children) {
+                this.transferProgress += 100 / files.children.length;
                 if (file.isDirectory) {
                     //just create the folder
                     await this.createFolder(file, file.parentPath + '/');
