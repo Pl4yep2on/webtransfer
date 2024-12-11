@@ -190,10 +190,6 @@ export default {
             type: Object,
             default: null,
         },
-        zip: {
-            type: Object,
-            default: null,
-        },
         dragEnded: {
             type: Boolean,
             Required: true,
@@ -411,39 +407,20 @@ export default {
                 try {
                     this.isTransfering = true;
                     const file = this.file;
-                    const zip = this.zip;
-                    console.log(file);
-                    console.log(zip);
 
-                    if (!file && !zip) return;
-
-                    if (zip) {
-                        const response = await fetch(zip.url);
-                        this.transferProgress = 25;
-                        if (!response.ok) {
-                            throw new Error(`Erreur lors du téléchargement : ${response.statusText}`);
-                        }
-                        const zipFile = await response.arrayBuffer();
-                        this.transferProgress = 50;
-
-                        await this.moveFileToTarget({
-                            name: zip.name,
-                            content: zipFile
-                        }, '');
-                        this.transferProgress = 100;
+                    if (!file) return;
+                    if (file.isDirectory) {
+                        await this.moveFilesOfFolder(file, '');
                     } else {
-                        if (file.isDirectory) {
-                            await this.moveFilesOfFolder(file, '');
-                        } else {
-                            this.transferProgress = 25;
-                            if (file.content && typeof file.content.arrayBuffer === 'function') {
-                                file.content = await file.content.arrayBuffer();
-                            }
-                            this.transferProgress = 50;
-                            await this.moveFileToTarget(file, '');
-                            this.transferProgress = 100;
+                        this.transferProgress = 25;
+                        if (file.content && typeof file.content.arrayBuffer === 'function') {
+                            file.content = await file.content.arrayBuffer();
                         }
+                        this.transferProgress = 50;
+                        await this.moveFileToTarget(file, '');
+                        this.transferProgress = 100;
                     }
+                    
                     this.isTransfering = false;
                     this.transferProgress = 0;
                     this.cancelOperation = false;
