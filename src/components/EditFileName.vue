@@ -1,6 +1,6 @@
 <template>
 <div  class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50" @click="closeModal">
-    <div class="bg-NcBlack rounded-lg shadow-lg p-6 w-96" @click.stop>
+    <div class="dark:bg-NcBlack bg-white rounded-lg shadow-lg p-6 w-96" @click.stop>
         <h2 class="text-lg font-semibold mb-4">{{ translate('modify.file.name') }}</h2>
         <input
             type="text"
