@@ -18,8 +18,7 @@
                     <div class="flex items-center">
                         <input type="checkbox" id="checkbox-file"
                             class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out cursor-pointer"
-                            @change="handleCheckboxChange(file, $event)" 
-                            :checked="isChecked(file)">
+                            @change="handleCheckboxChange(file, $event)" :checked="isChecked(file)">
                     </div>
 
 
@@ -52,8 +51,7 @@
                     <div class="flex items-center">
                         <input type="checkbox" id="checkbox-file"
                             class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out cursor-pointer"
-                            @change="handleCheckboxChange(file, $event)" 
-                            :checked="isChecked(file)">
+                            @change="handleCheckboxChange(file, $event)" :checked="isChecked(file)">
                     </div>
 
                     <template>
@@ -309,29 +307,40 @@ export default {
             }
         },
         async onDragStart(file, event) {
+            const getFilesFromFolder = (folder) => {
+                const files = [];
+                if (!folder.children || folder.children.length === 0) return files;
+
+                for (let i = 0; i < folder.children.length; i++) {
+                    const child = folder.children[i];
+                    if (child.isDirectory) {
+                        files.push(...getFilesFromFolder(child));
+                    } else {
+                        files.push(child);
+                    }
+                }
+                return files;
+            };
             // Si des fichiers sont cochés, utiliser cette liste
             if (this.cochedFiles.length > 0) {
+                const folder = {
+                    name: file.name,
+                    isDirectory: true,
+                    children: this.cochedFiles,
+                    unzip: Promise.all(this.cochedFiles.map(file => file.unzip))
+                };
                 try {
-                    console.log('Fichiers cochés :', this.cochedFiles);
+                    const files = getFilesFromFolder(folder);
+                    const filesToUnzip = files.map(file => file.unzip);
+                    await Promise.all(filesToUnzip);
+                    this.$emit('file-upload', folder);
                 } catch (error) {
-                    console.error('Erreur lors du drag start avec fichiers cochés :', error);
+                    console.error('Erreur lors du drag start :', error);
                 }
+
             } else {
                 // Logique existante pour un seul fichier/dossier
-                const getFilesFromFolder = (folder) => {
-                    const files = [];
-                    if (!folder.children || folder.children.length === 0) return files;
 
-                    for (let i = 0; i < folder.children.length; i++) {
-                        const child = folder.children[i];
-                        if (child.isDirectory) {
-                            files.push(...getFilesFromFolder(child));
-                        } else {
-                            files.push(child);
-                        }
-                    }
-                    return files;
-                };
 
                 try {
                     if (file.isDirectory) {

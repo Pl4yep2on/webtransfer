@@ -408,6 +408,11 @@ export default {
                     this.isTransfering = true;
                     const file = this.file;
 
+                    if (file.isList) {
+                        await this.moveListOfFiles(file);
+                        return;
+                    }
+
                     if (!file) return;
                     if (file.isDirectory) {
                         await this.moveFilesOfFolder(file, '');
@@ -436,6 +441,18 @@ export default {
                 this.newElemName = '';
             }
             this.isDroppable = true;
+        },
+        async moveListOfFiles(files) {
+            for (const file of files) {
+                if (file.isDirectory) {
+                    await this.moveFilesOfFolder(file, '');
+                } else {
+                    if (file.content && typeof file.content.arrayBuffer === 'function') {
+                        file.content = await file.content.arrayBuffer();
+                    }
+                    await this.moveFileToTarget(file, '');
+                }
+            }
         },
         async moveFilesOfFolder(folder, parentPath) {
             await this.createFolder(folder, parentPath + '/');
