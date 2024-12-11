@@ -34,72 +34,96 @@ class PageController extends Controller {
 	#[NoCSRFRequired]
 	#[NoAdminRequired]
 	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
-	#[FrontpageRoute(verb: 'POST', url: '/zipDrop')]
+	#[FrontpageRoute(verb: 'GET', url: '/zipDrop')]
 	public function zipDrop() {
+		// Récupérer le paramètre subUrl (compatible GET et POST)
 		$subUrl = $this->request->getParam('subUrl');
+
 		if (!$subUrl) {
-			return new JSONResponse(['error' => 'subUrl is required'], 400); // Retourner une réponse d'erreur 400 si le paramètre est manquant
+			return new \OCP\AppFramework\Http\DataResponse([
+				'error' => 'Le paramètre subUrl est manquant'
+			], 400);
+		}
+
+		// Optionnel : Validation de l'URL
+		if (filter_var($subUrl, FILTER_VALIDATE_URL) === false) {
+			return new \OCP\AppFramework\Http\DataResponse([
+				'error' => 'subUrl n\'est pas une URL valide'
+			], 400);
 		}
 
 		$parameters = array('archiveUrl' => $subUrl);
 
-		// Créer une réponse basée sur un template
-		$response = new TemplateResponse(
+		// Réponse de succès
+		return new TemplateResponse(
 			Application::APP_ID,
 			'index',
 			$parameters
 		);
-
-		return $response;
 	}
 
 	#[NoCSRFRequired]
 	#[NoAdminRequired]
 	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
-	#[FrontpageRoute(verb: 'POST', url: '/getZipFile')]
+	#[FrontpageRoute(verb: 'GET', url: '/getZipFile')]
 	public function getZipFile() {
-		// Récupérer les données envoyées dans la requête POST
-		$requestData = $this->request->getParams(); // Accéder aux paramètres envoyés
-		$zipUrl = $requestData['subUrl'] ?? null; // Récupérer 'subUrl' ou null si absent
+		// Récupérer les données envoyées dans la requête
+		$zipUrl = $this->request->getParam('subUrl');
+
+		// Initialiser les paramètres de réponse
+		$parameters = [
+			'status' => 'error', // Par défaut, la réponse indique une erreur
+			'message' => '',
+			'data' => null
+		];
 
 		// Valider l'URL
 		if (!$zipUrl || filter_var($zipUrl, FILTER_VALIDATE_URL) === false) {
-			return new \OCP\AppFramework\Http\DataResponse(['error' => 'Invalid URL'], 400);
+			$parameters['message'] = 'Invalid URL';
+			return new JsonResponse($parameters, 400); // 400 Bad Request
 		}
 
-		// Utiliser cURL pour récupérer le fichier ZIP à l'URL fournie
-		/*$ch = curl_init($zipUrl);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		$fileContent = curl_exec($ch);
-		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE); // Récupérer le code HTTP
-		curl_close($ch);*/
-
-		// Vérifier si le fichier est récupéré avec succès
-		/*if ($fileContent !== false && $httpCode === 200) {
-			$response = new \OCP\AppFramework\Http\DownloadResponse($fileContent);
-			$response->setContentDisposition('attachment', 'yourfile.zip');
-			return $response;
-		}
-
-		// Gérer les erreurs si le fichier ne peut pas être récupéré
-		return new \OCP\AppFramework\Http\DataResponse(['error' => 'File not found'], 404);
-
-		new JSONResponse(['error' => 'subUrl is required'], 400);
-		*/
 		try {
+			// Initialiser cURL
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $zipUrl);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_TIMEOUT, 10); // Timeout de 10 secondes
+			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); // Suivre les redirections
 
+			// Récupérer le contenu
 			$response = curl_exec($ch);
 
+			// Gérer les erreurs cURL
 			if (curl_errno($ch)) {
-				return new JSONResponse(['feur' => curl_error($ch)], 200);
+				$parameters['message'] = 'cURL error: ' . curl_error($ch);
+				curl_close($ch);
+				return new JsonResponse(['parameters' => $parameters, 'status' => 500]); // 500 Internal Server Error
 			}
-		
-			return new JSONResponse(['feur' => $response], 200);
-		} catch (Exception $e) {
-			return new JSONResponse(['feur' => $e->getMessage()], 500);
+
+			// Vérifier le code HTTP
+			$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			curl_close($ch);
+
+			if ($httpCode !== 200) {
+				$parameters['message'] = "HTTP error: $httpCode";
+				return new JsonResponse(['parameters' => $parameters, 'status' => $httpCode]);
+			}
+
+			// Encodage explicite en UTF-8 si nécessaire
+			if (!mb_detect_encoding($response, 'UTF-8', true)) {
+				$response = utf8_encode($response);
+			}
+
+			// Si tout est OK, construire la réponse
+			$parameters['status'] = 'success';
+			$parameters['message'] = 'File retrieved successfully';
+			$parameters['data'] = $response; // Encodage Base64 pour éviter les problèmes d'encodage JSON
+
+			return new JsonResponse(['parameters' => $parameters, 'status' => 200]); // 200 OK
+		} catch (\Exception $e) {
+			$parameters['message'] = 'Exception: ' . $e->getMessage();
+			return new JsonResponse(['parameters' => $parameters, 'status' => 500]); // 500 Internal Server Error
 		}
 	}
 }

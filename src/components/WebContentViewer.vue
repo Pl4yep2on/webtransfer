@@ -167,20 +167,11 @@ export default {
         async loadZipContent() {
             try {
                 var baseUrl = OC.generateUrl('/apps/webtransfer/getZipFile');
-                var postData = {
-                    subUrl: this.zipUrl
-                };
+                let fullUrl = baseUrl + '?subUrl=' + this.zipUrl;
 
-                let response = await fetch(baseUrl, {
-                                                        method: 'POST',
-                                                        headers: {
-                                                            'Content-Type': 'application/json' // Type de contenu JSON
-                                                        },
-                                                        body: JSON.stringify(postData) // Convertir les données en JSON
-                                                    })
-
-                console.log('response: ', await response.json())
-                const zipData = await response.blob();
+                let response = await fetch(fullUrl);
+                let responseJson = await response.json();
+                const zipData = responseJson.parameters.data;
                 this.zipName = this.zipUrl.split('/').pop();
                 const zip = await JSZip.loadAsync(zipData);
                 this.zipSize = zipData.size;

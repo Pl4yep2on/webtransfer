@@ -40,7 +40,7 @@ export default {
 	data() {
 		console.log('feur')
 		let zipUrl = document.getElementById('archiveInfos').getAttribute('dataarchiveurl');
-		console.log(zipUrl)
+		console.log(zipUrl);
 		return {
 			zipUrl,
 			sharedFile: null,
