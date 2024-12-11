@@ -190,10 +190,6 @@ export default {
             type: Object,
             default: null,
         },
-        zip: {
-            type: Object,
-            default: null,
-        },
         dragEnded: {
             type: Boolean,
             Required: true,
@@ -411,26 +407,10 @@ export default {
                 try {
                     this.isTransfering = true;
                     const file = this.file;
-                    const zip = this.zip;
-                    console.log(file);
-                    console.log(zip);
+                    if (!file) return;
 
-                    if (!file && !zip) return;
-
-                    if (zip) {
-                        const response = await fetch(zip.url);
-                        this.transferProgress = 25;
-                        if (!response.ok) {
-                            throw new Error(`Erreur lors du téléchargement : ${response.statusText}`);
-                        }
-                        const zipFile = await response.arrayBuffer();
-                        this.transferProgress = 50;
-
-                        await this.moveFileToTarget({
-                            name: zip.name,
-                            content: zipFile
-                        }, '');
-                        this.transferProgress = 100;
+                    if (file.isList) {
+                        await this.moveListOfFiles(file);
                     } else {
                         if (file.isDirectory) {
                             await this.moveFilesOfFolder(file, '');
@@ -444,6 +424,7 @@ export default {
                             this.transferProgress = 100;
                         }
                     }
+                  
                     this.isTransfering = false;
                     this.transferProgress = 0;
                     this.cancelOperation = false;
@@ -459,6 +440,20 @@ export default {
                 this.newElemName = '';
             }
             this.isDroppable = true;
+        },
+        async moveListOfFiles(files) {
+            for (const file of files.children) {
+                this.transferProgress += 100 / files.children.length;
+                if (file.isDirectory) {
+                    //just create the folder
+                    await this.createFolder(file, file.parentPath + '/');
+                } else {
+                    if (file.content && typeof file.content.arrayBuffer === 'function') {
+                        file.content = await file.content.arrayBuffer();
+                    }
+                    await this.moveFileToTarget(file, file.parentPath + '/');
+                }
+            }
         },
         async moveFilesOfFolder(folder, parentPath) {
             await this.createFolder(folder, parentPath + '/');

@@ -12,35 +12,21 @@
         </div>
 
         <div class="flex h-12 items-center border-b border-gray-300">
-            <div class="w-5/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">{{ translate('name') }}</div>
+            <div class="w-5/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">{{ translate('name') }}
+            </div>
             <div class="w-1/6 px-4 py-2 text-gray-500 font-semibold">{{ translate('size') }}</div>
         </div>
-
-        <!-- Fichier .zip -->
-        <div class="flex h-16 dark:hover:bg-NcGray hover:bg-NcWhite items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300" v-if="!isLoading && zipContent.length !== 0"
-            draggable="true" @dragstart="dragZip()" @dragend="onDragEnd">
-            <template>
-                <div class="flex items-center justify-center cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-10 h-10 ">
-                        <path fill="#969696" d="M5.12,5H18.87L17.93,4H5.93L5.12,5M20.54,5.23C20.83,5.57 21,6 21,6.5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V6.5C3,6 3.17,5.57 3.46,5.23L4.84,3.55C5.12,3.21 5.53,3 6,3H18C18.47,3 18.88,3.21 19.15,3.55L20.54,5.23M6,18H12V15H6V18Z"/>
-                    </svg>
-                </div>
-            </template>
-            <div class="w-5/6 flex items-center px-4 py-2  cursor-pointer">
-                <div class="truncate max-sm:max-w-32 max-w-64 cursor-pointer">{{ zipName }}</div>
-
-            </div>
-            <div class="w-1/6 py-2 cursor-pointer">
-                {{ formatFileSize(zipSize) }}
-            </div>
-        </div>
-
         <!-- Archive depliee -->
         <div v-if="!isLoading && zipContent.length !== 0" class="overflow-y-auto h-full">
             <div v-for="(file, index) in sortedFiles" :key="file.fullPath" class="flex flex-col">
 
                 <div class="flex h-16 dark:hover:bg-NcGray hover:bg-NcWhite items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
                     @click="toggleFolder(file)" v-if="file.isDirectory && isVisible(file)" draggable="true" @dragstart="onDragStart(file)" @dragend="onDragEnd">
+                    <div @click.stop class="flex items-center">
+                        <input type="checkbox" id="checkbox-file"
+                            class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out cursor-pointer"
+                            @change="handleCheckboxChange(file, $event)" :checked="isChecked(file)">
+                    </div>
                     <div class="w-5/6 flex items-center py-2 border-r border-gray-300 cursor-pointer">
                         <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
                             <template>
@@ -60,6 +46,11 @@
 
                 <div class="flex h-16 dark:hover:bg-NcGray hover:bg-NcWhite items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
                     v-else-if="isVisible(file)" draggable="true" @dragstart="onDragStart(file, $event)">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="checkbox-file"
+                            class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out cursor-pointer"
+                            @change="handleCheckboxChange(file, $event)" :checked="isChecked(file)">
+                    </div>
                     <template>
                         <div class="flex items-center justify-center cursor-pointer">
                             <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
@@ -78,7 +69,6 @@
                         {{ formatFileSize(file.size) }}
                     </div>
                 </div>
-
             </div>
         </div>
         <div v-if="isLoading" class="flex h-full items-center justify-center">
@@ -98,7 +88,6 @@ import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue';
 import ChevronDownIcon from 'vue-material-design-icons/ChevronDown.vue';
 import Loading from 'vue-material-design-icons/Loading.vue';
 import { ref } from 'vue';
-import path from 'path';
 
 export default {
     name: 'WebContentViewer',
@@ -120,6 +109,7 @@ export default {
             zipSize: 0,
             currentDir: '',
             breadcrumbParts: [],
+            cochedFiles: [],
         };
     },
     props: {
@@ -247,6 +237,59 @@ export default {
             event.preventDefault();
             this.$emit('dragEnded');
         },
+        handleCheckboxChange(file, event) {
+            if (event.target.checked) {
+                this.cocheFile(file);
+
+                // Si c'est un dossier, cocher récursivement tous les fichiers enfants
+                if (file.isDirectory && file.children) {
+                    this.cocheFilesRecursively(file.children);
+                }
+            } else {
+                this.decocheFile(file);
+
+                // Si c'est un dossier, décocher récursivement tous les fichiers enfants
+                if (file.isDirectory && file.children) {
+                    this.decocheFilesRecursively(file.children);
+                }
+            }
+        },
+        getFullPath(file) {
+            if (!file.parentPath || file.parentPath === '') {
+                return file.name;
+            } else {
+                return `${file.parentPath}/${file.name}`;
+            }
+        },
+        cocheFile(file) {
+            if (!this.cochedFiles.some(f => this.getFullPath(f) === this.getFullPath(file))) {
+                this.cochedFiles.push(file);
+                console.log(this.cochedFiles);
+            }
+        },
+        decocheFile(file) {
+            this.cochedFiles = this.cochedFiles.filter(f => this.getFullPath(f) !== this.getFullPath(file));
+            console.log(this.cochedFiles);
+        },
+        cocheFilesRecursively(files) {
+            files.forEach(file => {
+                this.cocheFile(file);
+                if (file.isDirectory && file.children) {
+                    this.cocheFilesRecursively(file.children);
+                }
+            });
+        },
+        decocheFilesRecursively(files) {
+            files.forEach(file => {
+                this.decocheFile(file);
+                if (file.isDirectory && file.children) {
+                    this.decocheFilesRecursively(file.children);
+                }
+            });
+        },
+        isChecked(file) {
+            return this.cochedFiles.some(f => this.getFullPath(f) === this.getFullPath(file));
+        },
         formatFileSize(size) {
             if (size < 1024) return `${size} B`;
             if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`;
@@ -274,13 +317,13 @@ export default {
         },
         async dragZip() {
             try {
-                const zip = {name: this.zipName, url: this.zipUrl};
+                const zip = { name: this.zipName, url: this.zipUrl };
                 this.$emit('zip-upload', zip);
             } catch (error) {
                 console.error('Erreur lors du drag du ZIP :', error);
             }
         },
-        async onDragStart(file) {
+        async onDragStart(file, event) {
             const getFilesFromFolder = (folder) => {
                 const files = [];
                 if (!folder.children || folder.children.length === 0) return files;
@@ -295,19 +338,77 @@ export default {
                 }
                 return files;
             };
+            
+            if (this.cochedFiles.length > 0) {
 
-            try {
-                if (file.isDirectory) {
-                    const files = getFilesFromFolder(file);
-                    const filesToUnzip = files.map(file => file.unzip);
-                    await Promise.all(filesToUnzip);
-                } else {
-                    await file.unzip;
+                const folder = {
+                    // Si des fichiers sont cochés, utiliser cette liste
+                    name: file.name,
+                    isDirectory: true,
+                    isList: true,
+                    children: this.cochedFiles,
+                    unzip: Promise.all(this.cochedFiles.map(file => file.unzip))
+                };
+                try {
+                    await folder.unzip;
+                    this.$emit('file-upload', folder);
+                } catch (error) {
+                    console.error('Erreur lors du drag start :', error);
                 }
-                this.$emit('file-upload', file);
-            } catch (error) {
-                console.error('Erreur lors du drag start :', error);
+
+            } else {
+                // Logique existante pour un seul fichier/dossier
+                try {
+                    if (file.isDirectory) {
+                        const files = getFilesFromFolder(file);
+                        const filesToUnzip = files.map(file => file.unzip);
+                        await Promise.all(filesToUnzip);
+                    } else {
+                        await file.unzip;
+                    }
+                    this.$emit('file-upload', file);
+                } catch (error) {
+                    console.error('Erreur lors du drag start :', error);
+                }
             }
+        },
+        isVisible(file){
+            let parentPath = file.parentPath;
+            if(this.currentDir === parentPath){
+                return true;
+            }
+            else{
+                return false;
+            }
+        },
+        getBreadcrumbParts() {
+            // Si le currentDir est un simple '/', on le renvoie sous forme de tableau vide.
+            if (this.currentDir === '') return [];
+            return this.currentDir.split('/').filter(part => part);
+        },
+        generateCrumbHref(index) {
+            const parts = this.breadcrumbParts.slice(0, index + 1);
+            return parts.join('/');
+        },
+        handleClickBreadcrumb(index) {
+            if (this.isTransfering) return;
+            let dir = '';
+            if (index >= -1) {
+                dir = this.generateCrumbHref(index);
+            }
+            this.currentDir = dir;
+            this.breadcrumbParts = this.getBreadcrumbParts();
+            //console.log('cur : ', this.currentDir)
+            let file = {
+                fullPath : dir,
+                parentPath: this.generateCrumbHref(index -1),
+                isDirectory: true,
+            };
+
+            Object.keys(this.folderMap).forEach(key => {
+                this.folderMap[key] = false;
+            });
+            this.toggleFolder(file)
         },
         isVisible(file){
             let parentPath = file.parentPath;

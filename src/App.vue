@@ -5,12 +5,12 @@
 			<!-- Première section -->
 			<div 
 				class="w-full sm:w-1/3 max-sm:h-2/5 p-4 sm:m-6 sm:mr-0 rounded-xl dark:bg-NcBlack/40 bg-white/80">
-				<WebContentViewer :translate="translate" @zip-upload="handleZipUpload" @file-upload="handleFileUpload" @dragEnded="toggleDragEnded" :zipUrl="zipUrl"/>
+				<WebContentViewer :translate="translate" @file-upload="handleFileUpload" @dragEnded="toggleDragEnded" :zipUrl="zipUrl"/>
 			</div>
 			<!-- Deuxième section -->
 			<div 
 				class="w-full sm:w-2/3 max-sm:h-3/5 p-4 sm:m-6 sm:ml-4 dark:bg-NcBlack bg-white rounded-xl">
-				<FileTable :file="sharedFile" :zip="zip" :dragEnded="dragEnded" :translate="translate" @dragEnded="toggleDragEnded"/>
+				<FileTable :file="sharedFile" :dragEnded="dragEnded" :translate="translate" @dragEnded="toggleDragEnded"/>
 			</div>
 		</div>
 	</div>
@@ -40,11 +40,10 @@ export default {
 	data() {
 		console.log('feur')
 		let zipUrl = document.getElementById('archiveInfos').getAttribute('dataarchiveurl');
-		console.log(zipUrl);
+		console.log(zipUrl)
 		return {
 			zipUrl,
 			sharedFile: null,
-			zip: null,
 			dragEnded: false,
 		};
 	},
@@ -52,12 +51,8 @@ export default {
 		handleFileUpload(file) {
 			this.sharedFile = file;
 		},
-		handleZipUpload(zip) {
-			this.zip = zip;
-		},
 		toggleDragEnded(){
 			this.dragEnded = !this.dragEnded;
-			this.zip = null;
 			this.sharedFile = null;
 		},
 		translate(id) {
