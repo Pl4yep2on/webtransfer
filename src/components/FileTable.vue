@@ -456,7 +456,7 @@ export default {
                     if (listOfFolder.includes(file.parentPath)) {
                         await this.moveFileToTarget(file, file.parentPath + '/', file.name);
                     } else {
-                        await this.createFolder(file, '');
+                        await this.moveFileToTarget(file, '');
                     }
                 }
             }
