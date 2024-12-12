@@ -27,7 +27,7 @@
 
                 <div class="flex flex-row w-full gap-2">
 
-                    <div @click.stop class="flex items-center cursor-pointer">
+                    <div v-if="isVisible(file)" @click.stop class="flex items-center cursor-pointer">
                         <input type="checkbox" id="checkbox-file"
                             class="NIQUE TA MERE SA CHANGE RIEN PARCE QUE HTML/CSS C DE LA MERDE"
                             @change="handleCheckboxChange(file, $event)" :checked="isChecked(file)" />
