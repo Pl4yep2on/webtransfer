@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-col h-full w-full border">
         <!-- Breadcrumb -->
-        <div class="flex flex-row mt-1 ml-3 items-start container">
+        <div class="flex flex-row mt-1 items-start container">
             <NcBreadcrumbs class="max-h-8">
                 <NcBreadcrumb name="Home" title="Title of the Home folder" @click="handleClickBreadcrumb(-1)">
                 </NcBreadcrumb>
@@ -12,61 +12,69 @@
         </div>
 
         <div class="flex h-12 items-center border-b border-gray-300">
-            <div class="w-5/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">{{ translate('name') }}
+            <div @click.stop class="flex items-center cursor-pointer">
+                <input type="checkbox" id="checkbox-file"
+                    class="NIQUE TA MERE SA CHANGE RIEN PARCE QUE HTML/CSS C DE LA MERDE"
+                    @change="handleCheckboxChange(file, $event)" :checked="isChecked(file)" />
             </div>
+            <div class="ml-2 w-5/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">{{
+                translate('name')}}</div>
             <div class="w-1/6 px-4 py-2 text-gray-500 font-semibold">{{ translate('size') }}</div>
         </div>
         <!-- Archive depliee -->
         <div v-if="!isLoading && zipContent.length !== 0" class="overflow-y-auto h-full">
             <div v-for="(file, index) in sortedFiles" :key="file.fullPath" class="flex flex-col">
 
-                <div class="flex h-16 dark:hover:bg-NcGray hover:bg-NcWhite items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
-                    @click="toggleFolder(file)" v-if="file.isDirectory && isVisible(file)" draggable="true" @dragstart="onDragStart(file)" @dragend="onDragEnd">
-                    <div @click.stop class="flex items-center">
-                        <input type="checkbox" id="checkbox-file"
-                            class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out cursor-pointer"
-                            @change="handleCheckboxChange(file, $event)" :checked="isChecked(file)">
-                    </div>
-                    <div class="w-5/6 flex items-center py-2 border-r border-gray-300 cursor-pointer">
-                        <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
-                            <template>
-                                <svg fill="currentColor" viewBox="0 0 24 24" class="text-NcBlue w-10 h-10 ">
-                                    <path
-                                        d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z">
-                                    </path>
-                                </svg>
-                            </template>
-                        </div>
-                        <div class="w-4/6 flex items-center py-2 border-r border-gray-300 cursor-pointer">
-                            <span class="ml-2 truncate cursor-pointer">{{ file.name }}</span>
-                        </div>
-                    </div>
-                    <div class="w-1/6 px-4 py-2 cursor-pointer">-</div>
-                </div>
+                <div class="flex flex-row w-full gap-2">
 
-                <div class="flex h-16 dark:hover:bg-NcGray hover:bg-NcWhite items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
-                    v-else-if="isVisible(file)" draggable="true" @dragstart="onDragStart(file, $event)">
-                    <div class="flex items-center">
+                    <div v-if="isVisible(file)" @click.stop class="flex items-center cursor-pointer">
                         <input type="checkbox" id="checkbox-file"
-                            class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out cursor-pointer"
-                            @change="handleCheckboxChange(file, $event)" :checked="isChecked(file)">
+                            class="NIQUE TA MERE SA CHANGE RIEN PARCE QUE HTML/CSS C DE LA MERDE"
+                            @change="handleCheckboxChange(file, $event)" :checked="isChecked(file)" />
                     </div>
-                    <template>
-                        <div class="flex items-center justify-center cursor-pointer">
-                            <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
-                                class="w-10 h-10"
-                                style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2">
-                                <path
-                                    d="M6 22c-.55 0-1.021-.196-1.412-.587A1.927 1.927 0 0 1 4 20V4c0-.55.196-1.021.588-1.413A1.926 1.926 0 0 1 6 2h8l6 6v12a1.93 1.93 0 0 1-.587 1.413A1.93 1.93 0 0 1 18 22H6Z"
-                                    style="fill:#969696;fill-rule:nonzero" transform="matrix(.7 0 0 .7 -.43 -.388)" />
-                            </svg>
+
+                    <div class="flex w-full h-16 dark:hover:bg-NcGray hover:bg-NcWhite items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
+                        @click="toggleFolder(file)" v-if="file.isDirectory && isVisible(file)" draggable="true"
+                        @dragstart="onDragStart(file)" @dragend="onDragEnd">
+
+                        <div class="w-5/6 flex items-center py-2 border-r border-gray-300 cursor-pointer">
+                            <div class="w-12 h-12 flex items-center justify-center cursor-pointer">
+                                <template>
+                                    <svg fill="currentColor" viewBox="0 0 24 24" class="text-NcBlue w-10 h-10 ">
+                                        <path
+                                            d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z">
+                                        </path>
+                                    </svg>
+                                </template>
+                            </div>
+                            <div class="w-4/6 flex items-center py-2 border-r border-gray-300 cursor-pointer">
+                                <span class="ml-2 truncate cursor-pointer">{{ file.name }}</span>
+                            </div>
                         </div>
-                    </template>
-                    <div class="w-5/6 flex items-center px-4 py-2  cursor-pointer">
-                        <div class="truncate max-sm:max-w-32 max-w-96 cursor-pointer">{{ file.name }}</div>
+                        <div class="w-1/6 px-4 py-2 cursor-pointer">-</div>
                     </div>
-                    <div class="w-1/6 py-2 cursor-pointer">
-                        {{ formatFileSize(file.size) }}
+
+
+                    <div class="flex h-16 w-full dark:hover:bg-NcGray hover:bg-NcWhite items-center pl-4 cursor-pointer rounded-lg border-b last:border-b-0 border-gray-300"
+                        v-else-if="isVisible(file)" draggable="true" @dragstart="onDragStart(file, $event)">
+                        <template>
+                            <div class="flex items-center justify-center cursor-pointer">
+                                <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
+                                    class="w-10 h-10"
+                                    style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2">
+                                    <path
+                                        d="M6 22c-.55 0-1.021-.196-1.412-.587A1.927 1.927 0 0 1 4 20V4c0-.55.196-1.021.588-1.413A1.926 1.926 0 0 1 6 2h8l6 6v12a1.93 1.93 0 0 1-.587 1.413A1.93 1.93 0 0 1 18 22H6Z"
+                                        style="fill:#969696;fill-rule:nonzero"
+                                        transform="matrix(.7 0 0 .7 -.43 -.388)" />
+                                </svg>
+                            </div>
+                        </template>
+                        <div class="w-5/6 flex items-center px-4 py-2  cursor-pointer">
+                            <div class="truncate max-sm:max-w-32 max-w-96 cursor-pointer">{{ file.name }}</div>
+                        </div>
+                        <div class="w-1/6 py-2 cursor-pointer">
+                            {{ formatFileSize(file.size) }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -91,7 +99,7 @@ import { ref } from 'vue';
 
 export default {
     name: 'WebContentViewer',
-    components:{
+    components: {
         NcBreadcrumbs,
         NcBreadcrumb
     },
@@ -273,8 +281,8 @@ export default {
             this.uncheckAll();
             const currentState = this.folderMap[file.fullPath];
             const parentPath = file.parentPath;
-            
-            if(!currentState) {
+
+            if (!currentState) {
                 this.currentDir = file.fullPath;
             }
             else {
@@ -282,7 +290,7 @@ export default {
             }
             this.$set(this.folderMap, file.fullPath, !currentState);
 
-            if(parentPath !== '') {
+            if (parentPath !== '') {
                 const parentState = this.folderMap[parentPath];
                 this.$set(this.folderMap, parentPath, !parentState);
             }
@@ -311,7 +319,7 @@ export default {
                 }
                 return files;
             };
-            
+
             if (this.cochedFiles.length > 0) {
 
                 const folder = {
@@ -346,12 +354,12 @@ export default {
                 }
             }
         },
-        isVisible(file){
+        isVisible(file) {
             let parentPath = file.parentPath;
-            if(this.currentDir === parentPath){
+            if (this.currentDir === parentPath) {
                 return true;
             }
-            else{
+            else {
                 return false;
             }
         },
@@ -374,8 +382,8 @@ export default {
             this.currentDir = dir;
             this.breadcrumbParts = this.getBreadcrumbParts();
             let file = {
-                fullPath : dir,
-                parentPath: this.generateCrumbHref(index -1),
+                fullPath: dir,
+                parentPath: this.generateCrumbHref(index - 1),
                 isDirectory: true,
             };
 
