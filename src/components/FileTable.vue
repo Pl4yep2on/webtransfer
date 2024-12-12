@@ -407,6 +407,7 @@ export default {
                 try {
                     this.isTransfering = true;
                     const file = this.file;
+                    console.log(file)
                     if (!file) return;
 
                     if (file.isList) {
@@ -442,13 +443,19 @@ export default {
             this.isDroppable = true;
         },
         async moveListOfFiles(files) {
+            let listOfFolder = [];
             for (const file of files.children) {
                 this.transferProgress += 100 / files.children.length;
-                let listOfFolder = [];
                 if (file.isDirectory) {
                     //just create the folder
                     await this.createFolder(file, file.parentPath + '/');
-                    listOfFolder.push(file.parentPath + '/' + file.name);
+                    let parentPath = file.parentPath;
+                    if(parentPath === ''){
+                        listOfFolder.push(file.name);
+                    }
+                    else{
+                        listOfFolder.push(file.parentPath + '/' + file.name);
+                    }
                 } else {
                     if (file.content && typeof file.content.arrayBuffer === 'function') {
                         file.content = await file.content.arrayBuffer();
