@@ -264,12 +264,10 @@ export default {
         cocheFile(file) {
             if (!this.cochedFiles.some(f => this.getFullPath(f) === this.getFullPath(file))) {
                 this.cochedFiles.push(file);
-                console.log(this.cochedFiles);
             }
         },
         decocheFile(file) {
             this.cochedFiles = this.cochedFiles.filter(f => this.getFullPath(f) !== this.getFullPath(file));
-            console.log(this.cochedFiles);
         },
         cocheFilesRecursively(files) {
             files.forEach(file => {
@@ -298,6 +296,7 @@ export default {
         },
         toggleFolder(file) {
             if (!file.isDirectory) return;
+            this.uncheckAll();
             const currentState = this.folderMap[file.fullPath];
             const parentPath = file.parentPath;
             
@@ -349,6 +348,7 @@ export default {
                     children: this.cochedFiles,
                     unzip: Promise.all(this.cochedFiles.map(file => file.unzip))
                 };
+
                 try {
                     await folder.unzip;
                     this.$emit('file-upload', folder);
@@ -391,6 +391,7 @@ export default {
             return parts.join('/');
         },
         handleClickBreadcrumb(index) {
+            this.uncheckAll();
             if (this.isTransfering) return;
             let dir = '';
             if (index >= -1) {
@@ -398,7 +399,6 @@ export default {
             }
             this.currentDir = dir;
             this.breadcrumbParts = this.getBreadcrumbParts();
-            //console.log('cur : ', this.currentDir)
             let file = {
                 fullPath : dir,
                 parentPath: this.generateCrumbHref(index -1),
@@ -410,43 +410,8 @@ export default {
             });
             this.toggleFolder(file)
         },
-        isVisible(file){
-            let parentPath = file.parentPath;
-            if(this.currentDir === parentPath){
-                return true;
-            }
-            else{
-                return false;
-            }
-        },
-        getBreadcrumbParts() {
-            // Si le currentDir est un simple '/', on le renvoie sous forme de tableau vide.
-            if (this.currentDir === '') return [];
-            return this.currentDir.split('/').filter(part => part);
-        },
-        generateCrumbHref(index) {
-            const parts = this.breadcrumbParts.slice(0, index + 1);
-            return parts.join('/');
-        },
-        handleClickBreadcrumb(index) {
-            if (this.isTransfering) return;
-            let dir = '';
-            if (index >= -1) {
-                dir = this.generateCrumbHref(index);
-            }
-            this.currentDir = dir;
-            this.breadcrumbParts = this.getBreadcrumbParts();
-            //console.log('cur : ', this.currentDir)
-            let file = {
-                fullPath : dir,
-                parentPath: this.generateCrumbHref(index -1),
-                isDirectory: true,
-            };
-
-            Object.keys(this.folderMap).forEach(key => {
-                this.folderMap[key] = false;
-            });
-            this.toggleFolder(file);
+        uncheckAll() {
+            this.cochedFiles = [];
         },
     },
 };
