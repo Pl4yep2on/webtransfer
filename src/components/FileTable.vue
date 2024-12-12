@@ -443,28 +443,15 @@ export default {
             this.isDroppable = true;
         },
         async moveListOfFiles(files) {
-            let listOfFolder = [];
             for (const file of files.children) {
                 this.transferProgress += 100 / files.children.length;
                 if (file.isDirectory) {
-                    //just create the folder
-                    await this.createFolder(file, file.parentPath + '/');
-                    let parentPath = file.parentPath;
-                    if(parentPath === ''){
-                        listOfFolder.push(file.name);
-                    }
-                    else{
-                        listOfFolder.push(file.parentPath + '/' + file.name);
-                    }
+                    await this.moveFilesOfFolder(file, file.parentPath + '/');
                 } else {
                     if (file.content && typeof file.content.arrayBuffer === 'function') {
                         file.content = await file.content.arrayBuffer();
                     }
-                    if (listOfFolder.includes(file.parentPath)) {
-                        await this.moveFileToTarget(file, file.parentPath + '/', file.name);
-                    } else {
-                        await this.moveFileToTarget(file, '');
-                    }
+                    await this.moveFileToTarget(file, '');
                 }
             }
         },

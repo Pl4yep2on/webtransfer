@@ -240,18 +240,8 @@ export default {
         handleCheckboxChange(file, event) {
             if (event.target.checked) {
                 this.cocheFile(file);
-
-                // Si c'est un dossier, cocher récursivement tous les fichiers enfants
-                if (file.isDirectory && file.children) {
-                    this.cocheFilesRecursively(file.children);
-                }
             } else {
                 this.decocheFile(file);
-
-                // Si c'est un dossier, décocher récursivement tous les fichiers enfants
-                if (file.isDirectory && file.children) {
-                    this.decocheFilesRecursively(file.children);
-                }
             }
         },
         getFullPath(file) {
@@ -268,22 +258,6 @@ export default {
         },
         decocheFile(file) {
             this.cochedFiles = this.cochedFiles.filter(f => this.getFullPath(f) !== this.getFullPath(file));
-        },
-        cocheFilesRecursively(files) {
-            files.forEach(file => {
-                this.cocheFile(file);
-                if (file.isDirectory && file.children) {
-                    this.cocheFilesRecursively(file.children);
-                }
-            });
-        },
-        decocheFilesRecursively(files) {
-            files.forEach(file => {
-                this.decocheFile(file);
-                if (file.isDirectory && file.children) {
-                    this.decocheFilesRecursively(file.children);
-                }
-            });
         },
         isChecked(file) {
             return this.cochedFiles.some(f => this.getFullPath(f) === this.getFullPath(file));
