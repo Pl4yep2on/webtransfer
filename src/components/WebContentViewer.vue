@@ -14,8 +14,8 @@
         <div class="flex h-12 items-center border-b border-gray-300">
             <div @click.stop class="flex items-center cursor-pointer">
                 <input type="checkbox" id="checkbox-file"
-                    class="NIQUE TA MERE SA CHANGE RIEN PARCE QUE HTML/CSS C DE LA MERDE"
-                    @change="handleCheckboxChange(file, $event)" :checked="isChecked(file)" />
+                    class="NIQUE TA MERE CA CHANGE RIEN PARCE QUE HTML/CSS C DE LA MERDE"
+                    @change="handleCheckAll($event)" v-model="checkedAll" />
             </div>
             <div class="ml-2 w-5/6 px-4 py-2 text-gray-500 font-semibold border-r border-gray-300">{{
                 translate('name')}}</div>
@@ -23,7 +23,7 @@
         </div>
         <!-- Archive depliee -->
         <div v-if="!isLoading && zipContent.length !== 0" class="overflow-y-auto h-full">
-            <div v-for="(file, index) in sortedFiles" :key="file.fullPath" class="flex flex-col">
+            <div v-for="(file, index) in cachedSortedFiles" :key="file.fullPath" class="flex flex-col">
 
                 <div class="flex flex-row w-full gap-2">
 
@@ -118,6 +118,8 @@ export default {
             currentDir: '',
             breadcrumbParts: [],
             cochedFiles: [],
+            checkedAll: false,
+            cachedSortedFiles: null,
         };
     },
     props: {
@@ -130,7 +132,7 @@ export default {
             Required: true,
         }
     },
-    computed: {
+    computed:{
         sortedFiles() {
             const flattenAndSort = (files, parentPath = '') => {
                 const flatList = [];
@@ -154,6 +156,14 @@ export default {
             };
 
             return flattenAndSort(this.zipContent);
+        },
+    },
+    watch: {
+        sortedFiles: {
+            handler(newVal) {
+                this.cachedSortedFiles = newVal; // Met à jour la variable chaque fois que sortedFiles change
+            },
+            immediate: true, // Met à jour dès que le composant est monté
         },
     },
     async mounted() {
@@ -394,7 +404,19 @@ export default {
         },
         uncheckAll() {
             this.cochedFiles = [];
+            this.checkedAll = false;
         },
+        handleCheckAll(event) {
+            this.sortedFiles.forEach(file => {
+                if(this.isVisible(file)) {
+                    if (event.target.checked) {
+                        this.cocheFile(file);
+                    } else {
+                        this.decocheFile(file);
+                    }
+                }
+            })
+        }
     },
 };
 </script>
