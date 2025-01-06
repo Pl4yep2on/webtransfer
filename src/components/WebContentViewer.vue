@@ -96,6 +96,7 @@ import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue';
 import ChevronDownIcon from 'vue-material-design-icons/ChevronDown.vue';
 import Loading from 'vue-material-design-icons/Loading.vue';
 import { ref } from 'vue';
+import {fileTypeFromBuffer} from 'file-type';
 
 export default {
     name: 'WebContentViewer',
@@ -186,67 +187,98 @@ export default {
 
                 let response = await fetch(fullUrl);
                 let responseJson = await response.json();
+
                 const zipData = responseJson.parameters.data;
-                this.zipName = this.zipUrl.split('/').pop();
-                const zip = await JSZip.loadAsync(zipData);
-                this.zipSize = zipData.size;
+                const first10Chars = zipData.substring(0,4);
 
-                const files = [];
+                // Check si le debut du fichier correspond a celui d'un zip
+                if(first10Chars === 'PK\x03\x04' || first10Chars === 'PK\x05\x06' || first10Chars === 'PK\x07\x08') {
+                    this.zipName = this.zipUrl.split('/').pop();
+                    const zip = await JSZip.loadAsync(zipData);
+                    this.zipSize = zipData.size;
 
-                zip.forEach((relativePath, file) => {
-                    const pathParts = relativePath.split('/').filter(Boolean);
-                    let currentLevel = files;
+                    const files = [];
 
-                    for (let i = 0; i < pathParts.length; i++) {
-                        const partName = pathParts[i];
-                        const isDirectory = i < pathParts.length - 1 || file.dir;
-                        let existing = currentLevel.find(f => f.name === partName && f.isDirectory === isDirectory);
+                    zip.forEach((relativePath, file) => {
+                        const pathParts = relativePath.split('/').filter(Boolean);
+                        let currentLevel = files;
 
-                        let promise;
+                        for (let i = 0; i < pathParts.length; i++) {
+                            const partName = pathParts[i];
+                            const isDirectory = i < pathParts.length - 1 || file.dir;
+                            let existing = currentLevel.find(f => f.name === partName && f.isDirectory === isDirectory);
 
-                        if (!isDirectory) {
-                            promise = file.async("blob").then(content => {
-                                existing.content = content;
-                            });
-                        }
+                            let promise;
 
-                        if (!existing) {
-                            existing = {
-                                name: pathParts[i],
-                                isDirectory,
-                                size: isDirectory ? 0 : file._data.uncompressedSize,
-                                content: isDirectory ? null : '',  // Initialiser 'content' pour les fichiers
-                                children: isDirectory ? [] : null,
-                                depth: pathParts.length, // Profondeur du fichier dans l'arborescence
-                                //remove the name of the file from the path
-                                parentPath: i > 0 ? pathParts[i - 1] : '',
-                                unzip: promise
-                            };
-                            currentLevel.push(existing);
-                        }
+                            if (!isDirectory) {
+                                promise = file.async("blob").then(content => {
+                                    existing.content = content;
+                                });
+                            }
 
-                        if (isDirectory) {
-                            currentLevel = existing.children;
-                        }
-                    }
-                });
+                            if (!existing) {
+                                existing = {
+                                    name: pathParts[i],
+                                    isDirectory,
+                                    size: isDirectory ? 0 : file._data.uncompressedSize,
+                                    content: isDirectory ? null : '',  // Initialiser 'content' pour les fichiers
+                                    children: isDirectory ? [] : null,
+                                    depth: pathParts.length, // Profondeur du fichier dans l'arborescence
+                                    //remove the name of the file from the path
+                                    parentPath: i > 0 ? pathParts[i - 1] : '',
+                                    unzip: promise
+                                };
+                                currentLevel.push(existing);
+                            }
 
-                // Attendre que tous les contenus de fichier soient extraits
-                this.zipContent = files;
-
-                // Initialiser folderMap
-                const initializeFolderMap = (files, parentPath = '') => {
-                    files.forEach(file => {
-                        const fullPath = parentPath ? `${parentPath}/${file.name}` : file.name;
-                        this.$set(this.folderMap, fullPath, false);
-                        if (file.isDirectory && file.children) {
-                            initializeFolderMap(file.children, fullPath);
+                            if (isDirectory) {
+                                currentLevel = existing.children;
+                            }
                         }
                     });
-                };
 
-                initializeFolderMap(this.zipContent);
-                console.log('Contenu du ZIP chargé avec succès');
+                    // Attendre que tous les contenus de fichier soient extraits
+                    this.zipContent = files;
+
+                    // Initialiser folderMap
+                    const initializeFolderMap = (files, parentPath = '') => {
+                        files.forEach(file => {
+                            const fullPath = parentPath ? `${parentPath}/${file.name}` : file.name;
+                            this.$set(this.folderMap, fullPath, false);
+                            if (file.isDirectory && file.children) {
+                                initializeFolderMap(file.children, fullPath);
+                            }
+                        });
+                    };
+
+                    initializeFolderMap(this.zipContent);
+                    console.log('Contenu du ZIP chargé avec succès');
+                }
+                else{
+                    const uint8Array = new Uint8Array(zipData.length);
+                    for (let i = 0; i <zipData.length; i++) {
+                        uint8Array[i] = zipData.charCodeAt(i);
+                    }
+
+                    try {
+                        let type = await fileTypeFromBuffer(uint8Array);;
+                        const file = new File([uint8Array], 'file.' + type.ext, {type: type.mime});
+                        let entry = [{
+                            name: file.name,
+                            isDirectory: false,
+                            size: file.size,
+                            content: uint8Array,  // Initialiser 'content' pour les fichiers
+                            children: null,
+                            depth: 0, // Profondeur du fichier dans l'arborescence
+                            //remove the name of the file from the path
+                            parentPath: '',
+                        }]
+                        this.zipContent = entry;
+                        console.log('Fichier chargé avec succès');
+                    } catch (e) {
+                        console.log('Erreur lors du telechargement du fichier.');
+                    }
+                }
             } catch (error) {
                 console.error('Erreur lors du chargement du contenu du ZIP :', error);
             }

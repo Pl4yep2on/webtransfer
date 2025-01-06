@@ -407,7 +407,6 @@ export default {
                 try {
                     this.isTransfering = true;
                     const file = this.file;
-                    console.log(file)
                     if (!file) return;
 
                     if (file.isList) {
