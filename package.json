@@ -11,7 +11,9 @@
     "dev": "NODE_ENV=development webpack --config webpack.js --progress",
     "watch": "NODE_ENV=development webpack --config webpack.js --progress --watch",
     "lint": "eslint src",
-    "stylelint": "stylelint src/**/*.vue src/**/*.scss src/**/*.css"
+    "stylelint": "stylelint src/**/*.vue src/**/*.scss src/**/*.css",
+    "tailwind": "npx tailwindcss -i ./src/input.css -o ./src/output.css",
+    "buildAll": "npm run build; npm run tailwind"
   },
   "browserslist": [
     "extends @nextcloud/browserslist-config"
