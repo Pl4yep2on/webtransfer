@@ -13,7 +13,7 @@
     "lint": "eslint src",
     "stylelint": "stylelint src/**/*.vue src/**/*.scss src/**/*.css",
     "tailwind": "npx tailwindcss -i ./src/input.css -o ./src/output.css",
-    "buildAll": "npm i && npm run build && npm run tailwind"
+    "buildAll": "npm i && npm run tailwind && npm run build"
   },
   "browserslist": [
     "extends @nextcloud/browserslist-config"
