@@ -36,23 +36,23 @@ class PageController extends Controller {
 	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
 	#[FrontpageRoute(verb: 'GET', url: '/zipDrop')]
 	public function zipDrop() {
-		// Récupérer le paramètre subUrl (compatible GET et POST)
-		$subUrl = $this->request->getParam('subUrl');
+		// Récupérer le paramètre url (compatible GET et POST)
+		$url = $this->request->getParam('url');
 
-		if (!$subUrl) {
+		if (!$url) {
 			return new \OCP\AppFramework\Http\DataResponse([
-				'error' => 'Le paramètre subUrl est manquant'
+				'error' => 'Le paramètre url est manquant'
 			], 400);
 		}
 
 		// Optionnel : Validation de l'URL
-		if (filter_var($subUrl, FILTER_VALIDATE_URL) === false) {
+		if (filter_var($url, FILTER_VALIDATE_URL) === false) {
 			return new \OCP\AppFramework\Http\DataResponse([
-				'error' => 'subUrl n\'est pas une URL valide'
+				'error' => 'url n\'est pas une URL valide'
 			], 400);
 		}
 
-		$parameters = array('archiveUrl' => $subUrl);
+		$parameters = array('archiveUrl' => $url);
 
 		// Réponse de succès
 		return new TemplateResponse(
@@ -68,7 +68,7 @@ class PageController extends Controller {
 	#[FrontpageRoute(verb: 'GET', url: '/getZipFile')]
 	public function getZipFile() {
 		// Récupérer les données envoyées dans la requête
-		$zipUrl = $this->request->getParam('subUrl');
+		$zipUrl = $this->request->getParam('url');
 
 		// Initialiser les paramètres de réponse
 		$parameters = [

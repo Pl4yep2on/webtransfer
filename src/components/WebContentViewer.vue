@@ -183,16 +183,16 @@ export default {
         async loadZipContent() {
             try {
                 var baseUrl = OC.generateUrl('/apps/webtransfer/getZipFile');
-                let fullUrl = baseUrl + '?subUrl=' + this.zipUrl;
+                let fullUrl = baseUrl + '?url=' + this.zipUrl;
 
                 let response = await fetch(fullUrl);
                 let responseJson = await response.json();
-
+                console.log(responseJson.parameters)
                 const zipData = responseJson.parameters.data;
                 const first10Chars = zipData.substring(0,4);
 
                 // Check si le debut du fichier correspond a celui d'un zip
-                if(first10Chars === 'PK\x03\x04' || first10Chars === 'PK\x05\x06' || first10Chars === 'PK\x07\x08') {
+                if(!this.isNotToBeUncompressed() && (first10Chars === 'PK\x03\x04' || first10Chars === 'PK\x05\x06' || first10Chars === 'PK\x07\x08')) {
                     this.zipName = this.zipUrl.split('/').pop();
                     const zip = await JSZip.loadAsync(zipData);
                     this.zipSize = zipData.size;
@@ -261,7 +261,7 @@ export default {
                     }
 
                     try {
-                        let type = await fileTypeFromBuffer(uint8Array);;
+                        let type = await fileTypeFromBuffer(uint8Array);
                         const file = new File([uint8Array], 'file.' + type.ext, {type: type.mime});
                         let entry = [{
                             name: file.name,
@@ -281,6 +281,19 @@ export default {
                 }
             } catch (error) {
                 console.error('Erreur lors du chargement du contenu du ZIP :', error);
+            }
+        },
+        isNotToBeUncompressed(){
+            const forbiddenExtensions = ['.docx', '.xlsx', '.odt', '.epub', '.pptx'];
+
+            const fileName = this.zipUrl.split('/').pop().toLowerCase();
+            const hasForbiddenExtension = forbiddenExtensions.some(ext => fileName.endsWith(ext));
+
+            if (hasForbiddenExtension) {
+                return true;
+            }
+            else {
+                return false;
             }
         },
         onDragEnd(event) {
