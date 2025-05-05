@@ -38,10 +38,16 @@ class PageController extends Controller {
 	public function zipDrop() {
 		// Récupérer le paramètre url (compatible GET et POST)
 		$url = $this->request->getParam('url');
+		$mode = $this->request->getParam('mode');
 
 		if (!$url) {
 			return new \OCP\AppFramework\Http\DataResponse([
 				'error' => 'Le paramètre url est manquant'
+			], 400);
+		}
+		if (!$mode) {
+			return new \OCP\AppFramework\Http\DataResponse([
+				'error' => 'Le paramètre mode est manquant'
 			], 400);
 		}
 
@@ -52,7 +58,7 @@ class PageController extends Controller {
 			], 400);
 		}
 
-		$parameters = array('archiveUrl' => $url);
+		$parameters = array('archiveUrl' => $url, 'mode' => $mode);
 
 		// Réponse de succès
 		return new TemplateResponse(

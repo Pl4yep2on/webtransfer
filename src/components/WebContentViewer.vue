@@ -109,6 +109,7 @@ export default {
             zipContent: [],
             folderMap: {},
             archiveUrl: '',
+            mode : '',
             token: '',
             ChevronRightIcon,
             ChevronDownIcon,
@@ -169,14 +170,16 @@ export default {
     },
     async mounted() {
         this.isLoading = true;
-        await this.loadZipContent();
         const webTransferDiv = document.getElementById('archiveInfos');
         if (webTransferDiv) {
             this.archiveUrl = webTransferDiv.dataset.archiveUrl;
+            this.mode = webTransferDiv.getAttribute('feur');
             this.token = webTransferDiv.dataset.token;
         } else {
             console.error('Pas d\'informations pour recuperer l\'archive');
         }
+        await this.loadZipContent();
+        
         this.isLoading = false;
     },
     methods: {
@@ -187,74 +190,79 @@ export default {
 
                 let response = await fetch(fullUrl);
                 let responseJson = await response.json();
-                console.log(responseJson.parameters)
+
                 const zipData = responseJson.parameters.data;
                 const first10Chars = zipData.substring(0,4);
 
                 // Check si le debut du fichier correspond a celui d'un zip
-                if(!this.isNotToBeUncompressed() && (first10Chars === 'PK\x03\x04' || first10Chars === 'PK\x05\x06' || first10Chars === 'PK\x07\x08')) {
-                    this.zipName = this.zipUrl.split('/').pop();
-                    const zip = await JSZip.loadAsync(zipData);
-                    this.zipSize = zipData.size;
+                if(this.mode === "zip") {
+                    if(!this.isNotToBeUncompressed() && (first10Chars === 'PK\x03\x04' || first10Chars === 'PK\x05\x06' || first10Chars === 'PK\x07\x08')) {
+                        this.zipName = this.zipUrl.split('/').pop();
+                        const zip = await JSZip.loadAsync(zipData);
+                        this.zipSize = zipData.size;
 
-                    const files = [];
+                        const files = [];
 
-                    zip.forEach((relativePath, file) => {
-                        const pathParts = relativePath.split('/').filter(Boolean);
-                        let currentLevel = files;
+                        zip.forEach((relativePath, file) => {
+                            const pathParts = relativePath.split('/').filter(Boolean);
+                            let currentLevel = files;
 
-                        for (let i = 0; i < pathParts.length; i++) {
-                            const partName = pathParts[i];
-                            const isDirectory = i < pathParts.length - 1 || file.dir;
-                            let existing = currentLevel.find(f => f.name === partName && f.isDirectory === isDirectory);
+                            for (let i = 0; i < pathParts.length; i++) {
+                                const partName = pathParts[i];
+                                const isDirectory = i < pathParts.length - 1 || file.dir;
+                                let existing = currentLevel.find(f => f.name === partName && f.isDirectory === isDirectory);
 
-                            let promise;
+                                let promise;
 
-                            if (!isDirectory) {
-                                promise = file.async("blob").then(content => {
-                                    existing.content = content;
-                                });
-                            }
+                                if (!isDirectory) {
+                                    promise = file.async("blob").then(content => {
+                                        existing.content = content;
+                                    });
+                                }
 
-                            if (!existing) {
-                                existing = {
-                                    name: pathParts[i],
-                                    isDirectory,
-                                    size: isDirectory ? 0 : file._data.uncompressedSize,
-                                    content: isDirectory ? null : '',  // Initialiser 'content' pour les fichiers
-                                    children: isDirectory ? [] : null,
-                                    depth: pathParts.length, // Profondeur du fichier dans l'arborescence
-                                    //remove the name of the file from the path
-                                    parentPath: i > 0 ? pathParts[i - 1] : '',
-                                    unzip: promise
-                                };
-                                currentLevel.push(existing);
-                            }
+                                if (!existing) {
+                                    existing = {
+                                        name: pathParts[i],
+                                        isDirectory,
+                                        size: isDirectory ? 0 : file._data.uncompressedSize,
+                                        content: isDirectory ? null : '',  // Initialiser 'content' pour les fichiers
+                                        children: isDirectory ? [] : null,
+                                        depth: pathParts.length, // Profondeur du fichier dans l'arborescence
+                                        //remove the name of the file from the path
+                                        parentPath: i > 0 ? pathParts[i - 1] : '',
+                                        unzip: promise
+                                    };
+                                    currentLevel.push(existing);
+                                }
 
-                            if (isDirectory) {
-                                currentLevel = existing.children;
-                            }
-                        }
-                    });
-
-                    // Attendre que tous les contenus de fichier soient extraits
-                    this.zipContent = files;
-
-                    // Initialiser folderMap
-                    const initializeFolderMap = (files, parentPath = '') => {
-                        files.forEach(file => {
-                            const fullPath = parentPath ? `${parentPath}/${file.name}` : file.name;
-                            this.$set(this.folderMap, fullPath, false);
-                            if (file.isDirectory && file.children) {
-                                initializeFolderMap(file.children, fullPath);
+                                if (isDirectory) {
+                                    currentLevel = existing.children;
+                                }
                             }
                         });
-                    };
 
-                    initializeFolderMap(this.zipContent);
-                    console.log('Contenu du ZIP chargé avec succès');
+                        // Attendre que tous les contenus de fichier soient extraits
+                        this.zipContent = files;
+
+                        // Initialiser folderMap
+                        const initializeFolderMap = (files, parentPath = '') => {
+                            files.forEach(file => {
+                                const fullPath = parentPath ? `${parentPath}/${file.name}` : file.name;
+                                this.$set(this.folderMap, fullPath, false);
+                                if (file.isDirectory && file.children) {
+                                    initializeFolderMap(file.children, fullPath);
+                                }
+                            });
+                        };
+
+                        initializeFolderMap(this.zipContent);
+                        console.log('Contenu du ZIP chargé avec succès');
+                    }
+                    else {
+                        throw new Error("ERROR : file is not a ZIP file.");
+                    }
                 }
-                else{
+                else if(this.mode == "file"){
                     const uint8Array = new Uint8Array(zipData.length);
                     for (let i = 0; i <zipData.length; i++) {
                         uint8Array[i] = zipData.charCodeAt(i);
@@ -278,6 +286,9 @@ export default {
                     } catch (e) {
                         console.log('Erreur lors du telechargement du fichier.');
                     }
+                }
+                else {
+                    throw new Error("ERROR : unknowed mode :", this.mode);
                 }
             } catch (error) {
                 console.error('Erreur lors du chargement du contenu du ZIP :', error);
