@@ -2,6 +2,7 @@
 return [
   'routes' => [
     ['name' => 'page#main', 'url' => '/', 'verb' => 'GET'],
-    ['name' => 'page#post', 'url' => '/post', 'verb' => 'POST'],
+    ['name' => 'page#zipDrop', 'url' => '/zipDrop', 'verb' => 'GET'],
+    ['name' => 'page#getZipFile', 'url' => '/getZipFile', 'verb' => 'GET']
   ]
 ];

@@ -1,43 +1,43 @@
 <template>
     <div class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50">
-        <div v-if="!displayRename && !displayOverwrite" class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
-            <h2 class="text-lg font-semibold mb-4">Le fichier existe déjà</h2>
-            <p>Le fichier "{{ fileName }}" existe déjà. Que voulez-vous faire ?</p>
+        <div v-if="!displayRename && !displayOverwrite" class="dark:bg-NcBlack bg-white rounded-lg shadow-lg p-6 w-96">
+            <h2 class="text-lg font-semibold mb-4">{{ translate('file.already.exist') }}</h2>
+            <p>{{ translate('file.pt.1') }}{{ fileName }}{{ translate('file.pt.2') }}</p>
             <div class="flex justify-end mt-4 space-x-2">
-                <button @click="toggleOverwrite">Écraser</button>
-                <button v-if="!isDirectory" @click="toggleRename">Renommer</button>
-                <button @click="onCancel">Annuler</button>
+                <button @click="toggleOverwrite">{{ translate('overwrite') }}</button>
+                <button v-if="!isDirectory" @click="toggleRename">{{ translate('rename') }}</button>
+                <button @click="onCancel">{{ translate('cancel') }}</button>
             </div>
         </div>
 
         <!-- Renommer le fichier -->
-        <div v-if="displayRename" class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
-            <h2 class="text-lg font-semibold mb-4">Modifier le nom du fichier</h2>
+        <div v-if="displayRename" class="dark:bg-NcBlack bg-white rounded-lg shadow-lg p-6 w-96">
+            <h2 class="text-lg font-semibold mb-4">{{ translate('change.file.name') }}</h2>
             <input
                 type="text"
                 v-model="newFileName"
                 @input="onInputChange"
                 @keyup.enter="save"
-                placeholder="Entrez le nom du fichier"
+                :placeholder="translate('enter.file.name')"
                 class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <div class="flex justify-end mt-4 space-x-2">
-                <button @click="save" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">Valider</button>
-                <button @click="toggleRename" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">Annuler</button>
+                <button @click="save" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">{{ translate('confirm') }}</button>
+                <button @click="toggleRename" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">{{ translate('cancel') }}</button>
             </div>
         </div>
 
         <!-- Appliquer l'ecrasement a tous -->
-        <div v-if="displayOverwrite" class="bg-NcBlack rounded-lg shadow-lg p-6 w-96">
-            <h2 class="text-lg font-semibold mb-4">Vous allez ecraser le fichier/dossier</h2>
+        <div v-if="displayOverwrite" class="dark:bg-NcBlack bg-white rounded-lg shadow-lg p-6 w-96">
+            <h2 class="text-lg font-semibold mb-4">{{ translate('you.are.going.to.erase.file.folder') }}</h2>
             <div class="flex items-center content-evenly">
                 <input type="checkbox" v-model="forAll" />
-                <p>Appliquer à tous*</p>
+                <p>{{ translate('apply.to.all.*') }}</p>
             </div>
-            <p class="text-xs text-gray-400">* ecrasera tous les fichiers qui ont le même nom sur votre dépôt</p>
+            <p class="text-xs text-gray-400">{{ translate('*.text') }}</p>
             <div class="flex justify-end mt-4 space-x-2">
-                <button @click="onOverwrite" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">Valider</button>
-                <button @click="toggleOverwrite" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">Annuler</button>
+                <button @click="onOverwrite" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">{{ translate('confirm') }}</button>
+                <button @click="toggleOverwrite" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">{{ translate('cancel') }}</button>
             </div>
         </div>
     </div>
@@ -53,6 +53,10 @@ export default {
         isDirectory:{
             type: Boolean,
             required: true,
+        },
+        translate: {
+            type: Function,
+            Required: true,
         }
     },
     data() {
