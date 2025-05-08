@@ -31,6 +31,7 @@ class PageController extends Controller {
 		);
 	}
 
+	// Route de la page d'extraction du zip
 	#[NoCSRFRequired]
 	#[NoAdminRequired]
 	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
@@ -68,11 +69,12 @@ class PageController extends Controller {
 		);
 	}
 
+	// Route pour download le fichier
 	#[NoCSRFRequired]
 	#[NoAdminRequired]
 	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
-	#[FrontpageRoute(verb: 'GET', url: '/getZipFile')]
-	public function getZipFile() {
+	#[FrontpageRoute(verb: 'GET', url: '/getFile')]
+	public function getFile() {
 		// Récupérer les données envoyées dans la requête
 		$zipUrl = $this->request->getParam('url');
 

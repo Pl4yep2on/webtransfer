@@ -110,7 +110,6 @@ export default {
             folderMap: {},
             archiveUrl: '',
             mode : '',
-            token: '',
             ChevronRightIcon,
             ChevronDownIcon,
             isLoading: ref(false),
@@ -174,7 +173,6 @@ export default {
         if (webTransferDiv) {
             this.archiveUrl = webTransferDiv.dataset.archiveUrl;
             this.mode = webTransferDiv.getAttribute('feur');
-            this.token = webTransferDiv.dataset.token;
         } else {
             console.error('Pas d\'informations pour recuperer l\'archive');
         }
@@ -185,8 +183,8 @@ export default {
     methods: {
         async loadZipContent() {
             try {
-                var baseUrl = OC.generateUrl('/apps/webtransfer/getZipFile');
-                let fullUrl = baseUrl + '?url=' + this.zipUrl;
+                var baseUrl = OC.generateUrl('/apps/webtransfer/getFile');
+                let fullUrl = baseUrl + '?url=' + encodeURIComponent(this.zipUrl);
 
                 let response = await fetch(fullUrl);
                 let responseJson = await response.json();
@@ -194,8 +192,8 @@ export default {
                 const zipData = responseJson.parameters.data;
                 const first10Chars = zipData.substring(0,4);
 
-                // Check si le debut du fichier correspond a celui d'un zip
                 if(this.mode === "zip") {
+                    // Check si le debut du fichier correspond a celui d'un zip
                     if(!this.isNotToBeUncompressed() && (first10Chars === 'PK\x03\x04' || first10Chars === 'PK\x05\x06' || first10Chars === 'PK\x07\x08')) {
                         this.zipName = this.zipUrl.split('/').pop();
                         const zip = await JSZip.loadAsync(zipData);
@@ -295,6 +293,11 @@ export default {
             }
         },
         isNotToBeUncompressed(){
+            /**
+             * Vérifie si l'archive à extraire fait partie des fichiers qu'il ne faut pas extraire
+             * 
+             * @returns true si c'est un type de fichier à ne pas extraire, false sinon
+             */
             const forbiddenExtensions = ['.docx', '.xlsx', '.odt', '.epub', '.pptx'];
 
             const fileName = this.zipUrl.split('/').pop().toLowerCase();

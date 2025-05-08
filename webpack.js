@@ -13,5 +13,4 @@ webpackConfig.module.rules.push({
 	type: 'asset/source',
 })
 
-
 module.exports = webpackConfig
